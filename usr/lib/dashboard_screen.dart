@@ -60,7 +60,7 @@ RETURN
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Meta: 1568 (Igual ao Gráfico)'),
+        title: const Text('Diagnóstico: Por que 1576?'),
         backgroundColor: Colors.blueGrey[900],
         foregroundColor: Colors.white,
       ),
@@ -69,36 +69,41 @@ RETURN
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Goal Section
+            // Explanation Section
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.green.shade50,
+                color: Colors.amber.shade50,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.green.shade200),
+                border: Border.all(color: Colors.amber.shade300),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.flag, color: Colors.green),
+                      Icon(Icons.lightbulb, color: Colors.amber),
                       SizedBox(width: 8),
                       Text(
-                        'O Objetivo é 1568!',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.green),
+                        'A Explicação Definitiva',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.amber),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   const Text(
-                    'Se SUMX não funcionou, vamos tentar KEEPFILTERS.',
+                    'Por que o Gráfico dá 1568 e o Card 1576?',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 8),
                   const Text(
-                    'SUMMARIZECOLUMNS geralmente dá erro em medidas com filtros de página. O melhor é usar SUMMARIZE com KEEPFILTERS para "cortar" os dados vazios.',
-                    style: TextStyle(fontSize: 14),
+                    '1. O "Filtro Invisível" do Gráfico:\n'
+                    'O gráfico NÃO CONSEGUE desenhar uma barra sem nome. Se o Quarter ou Release for vazio, ele esconde automaticamente. Ele "filtra visualmente" os 8 itens ruins.\n\n'
+                    '2. O Card é "Cego":\n'
+                    'O Card soma tudo o que existe no banco. Ele vê os 1568 bons + os 8 ruins (sem nome) = 1576.\n\n'
+                    '3. Por que o DAX falha (O Grande Vilão):\n'
+                    'Sua medida original "[Final Airs Counting]" provavelmente tem um comando "ALL" ou "REMOVEFILTERS" dentro dela. Quando tentamos filtrar "Não Vazio" no Card, sua medida diz: "Não importa o filtro, eu vou limpar tudo e calcular tudo de novo!". Ela atropela nosso filtro.',
+                    style: TextStyle(fontSize: 14, height: 1.4),
                   ),
                 ],
               ),
@@ -106,43 +111,59 @@ RETURN
             
             const SizedBox(height: 20),
 
-            // Control Panel
+            // Visual Representation
+            const Text(
+              "Visualizando o Problema:",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
             Container(
-              padding: const EdgeInsets.all(12),
+              height: 150,
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: Colors.white,
+                border: Border.all(color: Colors.grey.shade300),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.shade200),
               ),
               child: Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          'Simular Solução "KEEPFILTERS"',
-                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueAccent),
-                        ),
-                        Text(
-                          'Forçar intersecção apenas com dados válidos',
-                          style: TextStyle(fontSize: 12, color: Colors.black54),
-                        ),
+                        Icon(Icons.bar_chart, size: 40, color: Colors.green),
+                        Text("Gráfico (1568)", style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text("Esconde Vazios", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                        Container(
+                          margin: EdgeInsets.only(top: 5),
+                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          color: Colors.green.shade100,
+                          child: Text("Filtro Automático", style: TextStyle(fontSize: 10)),
+                        )
                       ],
                     ),
                   ),
-                  Switch(
-                    value: _filterBlanks,
-                    activeColor: Colors.blueAccent,
-                    onChanged: (value) {
-                      setState(() {
-                        _filterBlanks = value;
-                      });
-                    },
+                  const VerticalDivider(),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.featured_play_list, size: 40, color: Colors.red),
+                        Text("Card (1576)", style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text("Mostra Tudo", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                        Container(
+                          margin: EdgeInsets.only(top: 5),
+                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          color: Colors.red.shade100,
+                          child: Text("Sem Filtro", style: TextStyle(fontSize: 10)),
+                        )
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
+
             const SizedBox(height: 20),
             
             // KPI Cards Row
@@ -170,15 +191,6 @@ RETURN
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 12),
-            _buildKpiCard(
-              title: 'Seu Card (Novo Código)',
-              subtitle: _filterBlanks ? 'Sucesso (1568)' : 'Ainda Falhando (1576)',
-              value: cardValue.toStringAsFixed(0),
-              color: _filterBlanks ? Colors.blue.shade50 : Colors.orange.shade50,
-              textColor: _filterBlanks ? Colors.blue.shade900 : Colors.orange.shade900,
-              icon: Icons.functions,
             ),
             
             const SizedBox(height: 30),
