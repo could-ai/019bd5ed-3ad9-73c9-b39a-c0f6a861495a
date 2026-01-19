@@ -37,33 +37,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
       // Total = 1568
     ];
 
-    // DAX Code: Force Context (Re-applying filters)
-    final String daxCode = '''Card Match Chart (Force Context) = 
-VAR TabelaVirtual = 
+    // DAX Code: KEEPFILTERS Strategy
+    final String daxCode = '''Card Match Chart (KEEPFILTERS) = 
+VAR CombinacoesValidas = 
     FILTER(
         SUMMARIZE(
             '9K', 
             '9K'[Quarter_unif], 
             '9K'[release_instance]
         ),
-        -- 1. Remove vazios e espaços em branco
+        -- Garante que só pegamos combinações com texto real
         LEN(TRIM('9K'[Quarter_unif])) > 0 && 
         LEN(TRIM('9K'[release_instance])) > 0
     )
 RETURN
-    SUMX(
-        TabelaVirtual, 
-        VAR CurrentQuarter = '9K'[Quarter_unif]
-        VAR CurrentRelease = '9K'[release_instance]
-        RETURN
-        -- 2. FORÇA o filtro de volta. 
-        -- Se a medida original usa REMOVEFILTERS, isso aqui anula o efeito
-        -- e obriga ela a respeitar o Quarter/Release atual.
-        CALCULATE(
-            [Final Airs Counting (FC a FC)],
-            '9K'[Quarter_unif] = CurrentQuarter,
-            '9K'[release_instance] = CurrentRelease
-        )
+    CALCULATE(
+        [Final Airs Counting (FC a FC)],
+        -- KEEPFILTERS aplica a tabela filtrada como um filtro rígido
+        -- Isso intersecta com o contexto atual e remove os "fantasmas"
+        KEEPFILTERS(CombinacoesValidas)
     )''';
 
     return Scaffold(
@@ -100,12 +92,12 @@ RETURN
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Você perguntou "quanto eu quero que dê?". A resposta é 1568.',
+                    'Se SUMX não funcionou, vamos tentar KEEPFILTERS.',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    'O código que você colou antes (Sum of Parts) deu 1576 porque a sua medida original provavelmente tem um "REMOVEFILTERS" ou "ALL" que ignora o nosso filtro.',
+                    'SUMMARIZECOLUMNS geralmente dá erro em medidas com filtros de página. O melhor é usar SUMMARIZE com KEEPFILTERS para "cortar" os dados vazios.',
                     style: TextStyle(fontSize: 14),
                   ),
                 ],
@@ -129,11 +121,11 @@ RETURN
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Simular Solução "Forçar Contexto"',
+                          'Simular Solução "KEEPFILTERS"',
                           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueAccent),
                         ),
                         Text(
-                          'Re-aplicar filtros explicitamente',
+                          'Forçar intersecção apenas com dados válidos',
                           style: TextStyle(fontSize: 12, color: Colors.black54),
                         ),
                       ],
@@ -213,7 +205,7 @@ RETURN
                     children: [
                       const Expanded(
                         child: Text(
-                          'Solução Definitiva (Forçar Contexto):',
+                          'Solução KEEPFILTERS (Mais Robusta):',
                           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                       ),
@@ -243,18 +235,18 @@ RETURN
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.2),
+                      color: Colors.purple.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: Colors.orange.withOpacity(0.5)),
+                      border: Border.all(color: Colors.purple.withOpacity(0.5)),
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.lightbulb_outline, color: Colors.orangeAccent),
+                        Icon(Icons.warning_amber, color: Colors.purpleAccent),
                         SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'O segredo está no CALCULATE dentro do SUMX. Ele pega o Quarter/Release da linha e OBRIGA a medida a respeitá-lo, vencendo qualquer REMOVEFILTERS interno.',
-                            style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 13),
+                            'DICA IMPORTANTE: Verifique se o seu Gráfico tem algum "Filtro Visual" (Visual Level Filter) na aba de filtros lateral. Se tiver, o Card precisa ter esse mesmo filtro aplicado manualmente no CALCULATE.',
+                            style: TextStyle(color: Colors.purpleAccent, fontWeight: FontWeight.bold, fontSize: 13),
                           ),
                         ),
                       ],
