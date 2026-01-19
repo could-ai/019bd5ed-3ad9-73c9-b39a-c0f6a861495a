@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/services.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -49,9 +50,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final currentData = _applyDaxCorrection ? correctedData : incorrectData;
     final currentChartTotal = currentData.fold(0.0, (sum, list) => sum + list.fold(0.0, (s, item) => s + item));
 
+    final String daxCode = '''Final Airs Counting (FC a FC) - Consistente no Stacked =
+IF(
+    ISINSCOPE('9K'[release_instance]),
+    [Final Airs Counting (FC a FC)],
+    SUMX(
+        VALUES('9K'[release_instance]),
+        [Final Airs Counting (FC a FC)]
+    )
+)''';
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Análise Power BI vs Flutter'),
+        title: const Text('Solução Power BI vs Flutter'),
         backgroundColor: Colors.blueGrey[900],
         foregroundColor: Colors.white,
       ),
@@ -79,7 +90,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          'Aplica ISINSCOPE para forçar a soma correta',
+                          'Ative para ver os totais alinhados',
                           style: TextStyle(fontSize: 12, color: Colors.grey),
                         ),
                       ],
@@ -104,7 +115,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Expanded(
                   child: _buildKpiCard(
                     title: 'Total Card (PBI)',
-                    subtitle: 'Iteração Completa',
+                    subtitle: 'Meta (Correto)',
                     value: totalCardValue.toStringAsFixed(0),
                     color: Colors.blue.shade50,
                     textColor: Colors.blue.shade900,
@@ -115,7 +126,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Expanded(
                   child: _buildKpiCard(
                     title: 'Soma do Gráfico',
-                    subtitle: _applyDaxCorrection ? 'Alinhado' : 'Discrepância (-8)',
+                    subtitle: _applyDaxCorrection ? 'Corrigido' : 'Discrepância (-8)',
                     value: currentChartTotal.toStringAsFixed(0),
                     color: _applyDaxCorrection ? Colors.green.shade50 : Colors.red.shade50,
                     textColor: _applyDaxCorrection ? Colors.green.shade900 : Colors.red.shade900,
@@ -128,7 +139,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 24),
             
             const Text(
-              'Final Airs Counting (FC a FC) por Quarter',
+              'Visualização Stacked Column',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
@@ -199,47 +210,92 @@ class _DashboardScreenState extends State<DashboardScreen> {
             
             const SizedBox(height: 30),
             
-            // DAX Explanation Section
+            // DAX Solution Section
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: const Color(0xFF2D2D2D),
                 borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Solução DAX Aplicada:',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Solução DAX para Copiar:',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.copy, color: Colors.white70),
+                        tooltip: 'Copiar Código',
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: daxCode));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Código DAX copiado!')),
+                          );
+                        },
+                      ),
+                    ],
                   ),
+                  const Divider(color: Colors.white24),
                   const SizedBox(height: 8),
-                  const Text(
-                    '''Final Airs Counting (FC a FC) - Consistente no Stacked =
-IF(
-    ISINSCOPE('9K'[release_instance]),
-    [Final Airs Counting (FC a FC)],
-    SUMX(
-        VALUES('9K'[release_instance]),
-        [Final Airs Counting (FC a FC)]
-    )
-)''',
-                    style: TextStyle(
+                  Text(
+                    daxCode,
+                    style: const TextStyle(
                       color: Colors.greenAccent,
                       fontFamily: 'Courier',
                       fontSize: 13,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Como aplicar no Power BI:',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildStep(1, 'Crie uma "Nova Medida" na sua tabela.'),
+                  _buildStep(2, 'Cole o código acima.'),
+                  _buildStep(3, 'Substitua a medida antiga no Eixo Y do gráfico pela nova.'),
+                  const SizedBox(height: 8),
                   Text(
-                    'Explicação: O problema original era que o total do gráfico fazia um DISTINCTCOUNT global, ignorando sobreposições entre releases. Ao usar SUMX com VALUES(\'release_instance\'), forçamos o Power BI a somar os valores individuais das barras, garantindo que o total do gráfico (${currentChartTotal.toInt()}) bata com o Card (${totalCardValue.toInt()}).',
-                    style: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+                    'Isso força o PBI a somar os valores das releases individuais (SUMX) em vez de fazer uma contagem distinta global, recuperando os 8 itens "perdidos" na sobreposição.',
+                    style: TextStyle(color: Colors.grey.shade400, fontSize: 13, fontStyle: FontStyle.italic),
                   ),
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildStep(int number, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$number. ',
+            style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold),
+          ),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(color: Colors.grey.shade300, fontSize: 13),
+            ),
+          ),
+        ],
       ),
     );
   }
