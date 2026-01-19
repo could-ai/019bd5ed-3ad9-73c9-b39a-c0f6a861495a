@@ -37,23 +37,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
       // Total = 1568
     ];
 
-    // DAX Code: Handling Empty Strings ("") which ISBLANK misses
-    final String daxCode = '''Card Match Chart (String Fix) = 
-CALCULATE(
-    [Final Airs Counting (FC a FC)],
-    '9K'[Quarter_unif] <> "",
-    '9K'[release_instance] <> "",
-    NOT ISBLANK('9K'[Quarter_unif]),
-    NOT ISBLANK('9K'[release_instance])
-)
--- Se ISBLANK não funcionou, é quase certo que são "Textos Vazios" ("").
--- O Power BI trata "" diferente de BLANK().
--- O Gráfico esconde os dois. A Tabela mostra.
--- Este código remove ambos para bater 1568.''';
+    // DAX Code: SUMX over SUMMARIZE (Sum of Parts)
+    final String daxCode = '''Card Match Chart (Sum of Parts) = 
+VAR TabelaVirtual = 
+    FILTER(
+        SUMMARIZE(
+            '9K', 
+            '9K'[Quarter_unif], 
+            '9K'[release_instance]
+        ),
+        -- 1. Cria a estrutura do gráfico (Quarter x Release)
+        -- 2. Remove explicitamente os vazios que o gráfico esconde
+        NOT ISBLANK('9K'[Quarter_unif]) && '9K'[Quarter_unif] <> "" &&
+        NOT ISBLANK('9K'[release_instance]) && '9K'[release_instance] <> ""
+    )
+RETURN
+    -- 3. Calcula barra a barra e soma (Força Bruta)
+    SUMX(TabelaVirtual, [Final Airs Counting (FC a FC)])''';
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Diagnóstico: Texto Vazio vs Blank'),
+        title: const Text('Diagnóstico: Soma das Partes'),
         backgroundColor: Colors.blueGrey[900],
         foregroundColor: Colors.white,
       ),
@@ -66,36 +70,36 @@ CALCULATE(
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.amber.shade50,
+                color: Colors.orange.shade50,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.amber.shade200),
+                border: Border.all(color: Colors.orange.shade200),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.warning_amber_rounded, color: Colors.amber),
+                      Icon(Icons.lightbulb_outline, color: Colors.deepOrange),
                       SizedBox(width: 8),
                       Text(
-                        'ISBLANK falhou? Então são "Strings Vazias"!',
+                        'Nova Abordagem: "Soma das Partes"',
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.brown),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Se o filtro "NOT ISBLANK" não mudou o valor de 1576, significa que os campos NÃO são nulos (null).',
+                    'Se os filtros simples não funcionaram, o problema é que a sua medida é "Não-Aditiva".',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    'Eles provavelmente contêm um texto vazio ("") que parece branco, mas conta como valor válido para o DAX.',
+                    'Isso significa que calcular o Total Geral direto dá um resultado diferente de somar cada barrinha individualmente.',
                     style: TextStyle(fontSize: 14),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    '• O Gráfico esconde "" automaticamente.\n• A Tabela mostra "" (pode parecer uma linha fina vazia).\n• O Card soma tudo.',
+                    '• O Gráfico soma as barrinhas (1568).\n• O Card calcula o todo de uma vez (1576).\n• Solução: Forçar o Card a calcular barra a barra e somar.',
                     style: TextStyle(fontSize: 13),
                   ),
                 ],
@@ -119,11 +123,11 @@ CALCULATE(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Filtrar Strings Vazias ("")',
+                          'Simular "Soma das Partes"',
                           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueAccent),
                         ),
                         Text(
-                          'Remover itens com texto vazio',
+                          'Iterar Quarter/Release e remover vazios',
                           style: TextStyle(fontSize: 12, color: Colors.black54),
                         ),
                       ],
@@ -149,7 +153,7 @@ CALCULATE(
                 Expanded(
                   child: _buildKpiCard(
                     title: 'Tabela',
-                    subtitle: 'Mostra Vazios (1576)',
+                    subtitle: 'Mostra Tudo (1576)',
                     value: tableTotal.toStringAsFixed(0),
                     color: Colors.grey.shade100,
                     textColor: Colors.black87,
@@ -160,7 +164,7 @@ CALCULATE(
                 Expanded(
                   child: _buildKpiCard(
                     title: 'Gráfico',
-                    subtitle: 'Esconde Vazios (1568)',
+                    subtitle: 'Soma Barras (1568)',
                     value: chartTotal.toStringAsFixed(0),
                     color: Colors.blue.shade50,
                     textColor: Colors.blue.shade900,
@@ -172,7 +176,7 @@ CALCULATE(
             const SizedBox(height: 12),
             _buildKpiCard(
               title: 'Seu Card (Meta)',
-              subtitle: _filterBlanks ? 'Corrigido (Sem "")' : 'Original (Com "")',
+              subtitle: _filterBlanks ? 'Igual Gráfico (Soma Partes)' : 'Cálculo Direto (Total)',
               value: cardValue.toStringAsFixed(0),
               color: _filterBlanks ? Colors.green.shade50 : Colors.red.shade50,
               textColor: _filterBlanks ? Colors.green.shade900 : Colors.red.shade900,
@@ -203,7 +207,7 @@ CALCULATE(
                     children: [
                       const Expanded(
                         child: Text(
-                          'Nova Tentativa (Remove ""):',
+                          'Solução "Soma das Partes":',
                           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                       ),
@@ -233,18 +237,18 @@ CALCULATE(
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.amber.withOpacity(0.2),
+                      color: Colors.blue.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: Colors.amber.withOpacity(0.5)),
+                      border: Border.all(color: Colors.blue.withOpacity(0.5)),
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.info_outline, color: Colors.amberAccent),
+                        Icon(Icons.info_outline, color: Colors.lightBlueAccent),
                         SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Adicionei a verificação <> "" (diferente de vazio). Isso pega casos que o ISBLANK deixa passar.',
-                            style: TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold, fontSize: 13),
+                            'Usamos SUMX + SUMMARIZE para recriar a lógica do gráfico: calcular cada pedaço separadamente e somar no final, ignorando os vazios.',
+                            style: TextStyle(color: Colors.lightBlueAccent, fontWeight: FontWeight.bold, fontSize: 13),
                           ),
                         ),
                       ],
