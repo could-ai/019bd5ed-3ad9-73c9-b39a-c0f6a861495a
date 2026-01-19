@@ -17,20 +17,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     // Scenario: 
     // Chart (Visual Sum) = 1568.
+    // Table (Converted Chart) = 1576.
     // Card (DAX Sum) = 1576.
-    // Page Filter: "FC is not blank" is ACTIVE.
     
     // Logic:
-    // The 8 extra items HAVE a valid FC (so they pass the page filter).
-    // However, they likely have a BLANK Quarter or Release.
-    // Chart: Hides Blank Quarters automatically.
-    // Card: Counts Blank Quarters unless explicitly filtered.
+    // The Table proves the data EXISTS (1576).
+    // The Chart is HIDING the "Blank" category (8 items).
+    // To make the Card match the Chart (1568), we must exclude Blanks in the Card measure.
     
     final double chartTotal = 1568;
+    final double tableTotal = 1576;
     
     // Card Value:
-    // Without filter: 1576 (Counts items with Valid FC but Blank Quarter)
-    // With filter: 1568 (Matches Chart by excluding Blank Quarter)
+    // Without filter: 1576 (Includes Blank Quarter)
+    // With filter: 1568 (Excludes Blank Quarter to match Chart)
     final double cardValue = _filterBlanks ? 1568 : 1576;
 
     // Data for the chart (Visual representation of 1568)
@@ -42,29 +42,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
       // Total = 1568
     ];
 
-    // DAX Code: Removing Blanks from Iteration
-    final String daxCode = '''Total Card (Match Chart) = 
-SUMX(
-    FILTER(
-        VALUES('9K'[Quarter_unif]), 
-        NOT ISBLANK('9K'[Quarter_unif])
-    ),
-    SUMX(
-        FILTER(
-            VALUES('9K'[release_instance]), 
-            NOT ISBLANK('9K'[release_instance])
-        ),
-        [Final Airs Counting (FC a FC)]
-    )
+    // DAX Code: Explicitly Removing Blanks to Match Chart
+    final String daxCode = '''Card Match Chart (Final) = 
+CALCULATE(
+    [Final Airs Counting (FC a FC)],
+    NOT ISBLANK('9K'[Quarter_unif]),
+    NOT ISBLANK('9K'[release_instance])
 )
--- O filtro de página "FC não é blank" deixa passar linhas com FC válido.
--- Mas essas linhas podem ter Quarter ou Release VAZIOS.
--- O Gráfico esconde Quarter vazio. O Card conta.
--- Este código remove explicitamente os vazios para igualar.''';
+-- O Gráfico esconde automaticamente Quarter/Release vazio.
+-- A Tabela mostra tudo (por isso dá 1576).
+-- Este código força o Card a ignorar os vazios, batendo 1568.''';
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Análise: Filtro de Página vs. Blanks'),
+        title: const Text('Diagnóstico Final: Tabela vs Gráfico'),
         backgroundColor: Colors.blueGrey[900],
         foregroundColor: Colors.white,
       ),
@@ -73,41 +64,41 @@ SUMX(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Explanation of Page Filter
+            // Diagnosis Section
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.indigo.shade50,
+                color: Colors.orange.shade50,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.indigo.shade200),
+                border: Border.all(color: Colors.orange.shade200),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.filter_alt, color: Colors.indigo),
+                      Icon(Icons.lightbulb, color: Colors.orange),
                       SizedBox(width: 8),
                       Text(
-                        'O Filtro de Página "FC não é Blank" ajuda?',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.indigo),
+                        'Achei o problema! (Tabela = 1576)',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.deepOrange),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'SIM, ele remove linhas sem valor. MAS...',
+                    'Se a Tabela mostra 1576 e o Gráfico mostra 1568, isso confirma 100%:',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    'As 8 unidades extras (1576 - 1568) provavelmente têm um FC válido (passam no filtro), mas têm "Quarter" ou "Release" em BRANCO.',
+                    'Existem 8 itens com "Quarter" ou "Release" em BRANCO (Blank).',
                     style: TextStyle(fontSize: 14),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    '• O Gráfico esconde colunas/legendas em branco automaticamente.\n• O Card (DAX) conta tudo, inclusive categorias em branco.',
-                    style: TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
+                    '• A Tabela mostra uma linha "(Blank)" com valor 8.\n• O Gráfico não consegue desenhar uma barra sem nome, então ele esconde.\n• O Card soma tudo (1576).',
+                    style: TextStyle(fontSize: 13),
                   ),
                 ],
               ),
@@ -119,9 +110,9 @@ SUMX(
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.amber.shade50,
+                color: Colors.blue.shade50,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.amber.shade200),
+                border: Border.all(color: Colors.blue.shade200),
               ),
               child: Row(
                 children: [
@@ -130,19 +121,19 @@ SUMX(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Simular Correção no Card',
-                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange),
+                          'Aplicar Correção no Card',
+                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueAccent),
                         ),
                         Text(
-                          'Adicionar NOT ISBLANK(Quarter) na medida',
-                          style: TextStyle(fontSize: 12, color: Colors.brown),
+                          'Ignorar Blanks para bater com o Gráfico',
+                          style: TextStyle(fontSize: 12, color: Colors.black54),
                         ),
                       ],
                     ),
                   ),
                   Switch(
                     value: _filterBlanks,
-                    activeColor: Colors.deepOrange,
+                    activeColor: Colors.blueAccent,
                     onChanged: (value) {
                       setState(() {
                         _filterBlanks = value;
@@ -159,19 +150,19 @@ SUMX(
               children: [
                 Expanded(
                   child: _buildKpiCard(
-                    title: 'Seu Card Atual',
-                    subtitle: _filterBlanks ? 'Corrigido (1568)' : 'Com "Ghosts" (1576)',
-                    value: cardValue.toStringAsFixed(0),
-                    color: _filterBlanks ? Colors.green.shade50 : Colors.red.shade50,
-                    textColor: _filterBlanks ? Colors.green.shade900 : Colors.red.shade900,
-                    icon: Icons.functions,
+                    title: 'Tabela (Dados Reais)',
+                    subtitle: 'Inclui Blanks (1576)',
+                    value: tableTotal.toStringAsFixed(0),
+                    color: Colors.grey.shade100,
+                    textColor: Colors.black87,
+                    icon: Icons.table_chart,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildKpiCard(
-                    title: 'Soma do Gráfico',
-                    subtitle: 'Visual (1568)',
+                    title: 'Gráfico (Visual)',
+                    subtitle: 'Esconde Blanks (1568)',
                     value: chartTotal.toStringAsFixed(0),
                     color: Colors.blue.shade50,
                     textColor: Colors.blue.shade900,
@@ -179,6 +170,15 @@ SUMX(
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 12),
+            _buildKpiCard(
+              title: 'Seu Card (Meta)',
+              subtitle: _filterBlanks ? 'Corrigido (Ignora Blanks)' : 'Original (Conta Blanks)',
+              value: cardValue.toStringAsFixed(0),
+              color: _filterBlanks ? Colors.green.shade50 : Colors.red.shade50,
+              textColor: _filterBlanks ? Colors.green.shade900 : Colors.red.shade900,
+              icon: Icons.functions,
             ),
             
             const SizedBox(height: 30),
@@ -205,7 +205,7 @@ SUMX(
                     children: [
                       const Expanded(
                         child: Text(
-                          'Solução para o Card (Ignorar Blanks):',
+                          'Solução Final (Card = 1568):',
                           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                       ),
@@ -226,7 +226,7 @@ SUMX(
                   Text(
                     daxCode,
                     style: const TextStyle(
-                      color: Colors.orangeAccent,
+                      color: Colors.greenAccent,
                       fontFamily: 'Courier',
                       fontSize: 13,
                     ),
@@ -235,18 +235,18 @@ SUMX(
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.2),
+                      color: Colors.orange.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: Colors.blue.withOpacity(0.5)),
+                      border: Border.all(color: Colors.orange.withOpacity(0.5)),
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.info_outline, color: Colors.lightBlueAccent),
+                        Icon(Icons.check_circle, color: Colors.orangeAccent),
                         SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Use esta medida no CARD. Ela força a exclusão de Quarters vazios, mesmo que o FC seja válido, alinhando com o comportamento visual do gráfico.',
-                            style: TextStyle(color: Colors.lightBlueAccent, fontWeight: FontWeight.bold, fontSize: 13),
+                            'Use esta medida no CARD. Ela remove os itens sem Quarter/Release, fazendo o valor cair para 1568 e bater com o gráfico.',
+                            style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 13),
                           ),
                         ),
                       ],
@@ -308,38 +308,6 @@ SUMX(
           ),
         ],
       ),
-    );
-  }
-
-  BarChartGroupData _makeGroupData(int x, List<double> values) {
-    return BarChartGroupData(
-      x: x,
-      barRods: [
-        BarChartRodData(
-          toY: values.reduce((a, b) => a + b),
-          rodStackItems: [
-            BarChartRodStackItem(0, values[0], Colors.blue),
-            BarChartRodStackItem(values[0], values[0] + values[1], Colors.orange),
-            BarChartRodStackItem(values[0] + values[1], values[0] + values[1] + values[2], Colors.green),
-          ],
-          width: 20,
-          borderRadius: BorderRadius.circular(4),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLegendItem(Color color, String text) {
-    return Row(
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          color: color,
-        ),
-        const SizedBox(width: 4),
-        Text(text),
-      ],
     );
   }
 }
