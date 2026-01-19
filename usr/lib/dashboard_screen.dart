@@ -10,21 +10,24 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  // State to toggle the "Align Card" simulation
-  bool _alignCardToChart = false;
+  // State to toggle the "Filter Blanks" simulation
+  bool _filterBlanks = false;
 
   @override
   Widget build(BuildContext context) {
-    // Scenario: The Chart is stubborn at 1568.
-    // The User wants to lower the Card (1576) to match the Chart (1568).
+    // Scenario: 
+    // Chart (Visual Sum) = 1568.
+    // Card (DAX Sum) = 1576.
+    // Removing K_Type didn't fix it (still 1576).
+    // Hypothesis: The extra 8 are coming from "Blank" categories (Quarter or Release) 
+    // that the Chart hides automatically but DAX VALUES() counts.
     
-    // Chart is fixed at 1568 (The "Reality")
     final double chartTotal = 1568;
     
     // Card Value:
-    // Without fix: 1576 (Iterating K_Type, counting duplicates)
-    // With fix: 1568 (Removing K_Type iteration, matching Chart)
-    final double cardValue = _alignCardToChart ? 1568 : 1576;
+    // Without filter: 1576 (Counts Blanks/Ghosts)
+    // With filter: 1568 (Matches Chart)
+    final double cardValue = _filterBlanks ? 1568 : 1576;
 
     // Data for the chart (Visual representation of 1568)
     final List<List<double>> chartData = [
@@ -35,24 +38,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
       // Total = 1568
     ];
 
-    // DAX Code: Simplified Card Logic (Removing K_Type iteration)
-    final String daxCode = '''Total Bars Airs (Match Chart) = 
+    // DAX Code: Removing Blanks from Iteration
+    final String daxCode = '''Total Bars Airs (No Blanks) = 
 SUMX(
-    VALUES('9K'[Quarter_unif]),
+    FILTER(VALUES('9K'[Quarter_unif]), NOT ISBLANK('9K'[Quarter_unif])),
     SUMX(
-        VALUES('9K'[release_instance]),
-        SUMX(
-            VALUES('9K'[FC Res]),
-            [Final Airs Counting (FC a FC)]
-        )
+        FILTER(VALUES('9K'[release_instance]), NOT ISBLANK('9K'[release_instance])),
+        [Final Airs Counting (FC a FC)]
     )
 )
--- REMOVIDO: SUMX(VALUES('9K'[K_Type Patches])...)
--- Motivo: O gráfico não separa por K_Type, então o Card também não deve separar.''';
+-- REMOVIDO: K_Type Loop
+-- ADICIONADO: FILTER(..., NOT ISBLANK(...))
+-- Motivo: O gráfico esconde (Blank) automaticamente, mas o DAX conta. 
+-- Os 8 extras podem ser dados "fantasmas" sem Quarter ou Release.''';
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Solução: Ajustar Card ao Gráfico'),
+        title: const Text('Solução: Filtrar "Blanks"'),
         backgroundColor: Colors.blueGrey[900],
         foregroundColor: Colors.white,
       ),
@@ -65,9 +67,9 @@ SUMX(
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.orange.shade50,
+                color: Colors.amber.shade50,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.orange.shade200),
+                border: Border.all(color: Colors.amber.shade200),
               ),
               child: Row(
                 children: [
@@ -76,22 +78,22 @@ SUMX(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Estratégia Inversa: Ajustar Card',
+                          'Hipótese: Dados em Branco (Ghosts)',
                           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange),
                         ),
                         Text(
-                          'Remover iteração extra do Card para bater com o Gráfico',
+                          'Se remover K_Type não resolveu, o Card pode estar somando (Blank).',
                           style: TextStyle(fontSize: 12, color: Colors.brown),
                         ),
                       ],
                     ),
                   ),
                   Switch(
-                    value: _alignCardToChart,
+                    value: _filterBlanks,
                     activeColor: Colors.deepOrange,
                     onChanged: (value) {
                       setState(() {
-                        _alignCardToChart = value;
+                        _filterBlanks = value;
                       });
                     },
                   ),
@@ -105,11 +107,11 @@ SUMX(
               children: [
                 Expanded(
                   child: _buildKpiCard(
-                    title: 'Total Card (PBI)',
-                    subtitle: _alignCardToChart ? 'Alinhado (1568)' : 'Excesso (1576)',
+                    title: 'Total Card',
+                    subtitle: _filterBlanks ? 'Sem Blanks (1568)' : 'Com Blanks (1576)',
                     value: cardValue.toStringAsFixed(0),
-                    color: _alignCardToChart ? Colors.green.shade50 : Colors.red.shade50,
-                    textColor: _alignCardToChart ? Colors.green.shade900 : Colors.red.shade900,
+                    color: _filterBlanks ? Colors.green.shade50 : Colors.red.shade50,
+                    textColor: _filterBlanks ? Colors.green.shade900 : Colors.red.shade900,
                     icon: Icons.functions,
                   ),
                 ),
@@ -117,7 +119,7 @@ SUMX(
                 Expanded(
                   child: _buildKpiCard(
                     title: 'Soma do Gráfico',
-                    subtitle: 'Fixo (1568)',
+                    subtitle: 'Visual (1568)',
                     value: chartTotal.toStringAsFixed(0),
                     color: Colors.blue.shade50,
                     textColor: Colors.blue.shade900,
@@ -223,7 +225,7 @@ SUMX(
                     children: [
                       const Expanded(
                         child: Text(
-                          'Nova Medida para o CARD (Simplificada):',
+                          'Nova Medida (Sem Blanks):',
                           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                       ),
@@ -253,18 +255,18 @@ SUMX(
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.2),
+                      color: Colors.amber.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: Colors.blue.withOpacity(0.5)),
+                      border: Border.all(color: Colors.amber.withOpacity(0.5)),
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.info_outline, color: Colors.blueAccent),
+                        Icon(Icons.warning_amber, color: Colors.amberAccent),
                         SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Ao remover o SUMX de "K_Type Patches", o Card deixa de contar duplicatas entre 5K e 9K, alinhando-se com o comportamento natural do gráfico (1568).',
-                            style: TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 13),
+                            'Se remover K_Type não baixou o valor, é provável que existam 8 registros com Quarter ou Release em BRANCO. O gráfico esconde isso, mas o SUMX conta. O filtro NOT ISBLANK resolve.',
+                            style: TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold, fontSize: 13),
                           ),
                         ),
                       ],
