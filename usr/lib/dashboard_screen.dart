@@ -50,10 +50,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final currentData = _applyDaxCorrection ? correctedData : incorrectData;
     final currentChartTotal = currentData.fold(0.0, (sum, list) => sum + list.fold(0.0, (s, item) => s + item));
 
-    final String daxCode = '''Final Airs Counting (FC a FC) - Consistente no Stacked =
-IF(
-    ISINSCOPE('9K'[release_instance]),
-    [Final Airs Counting (FC a FC)],
+    // Updated DAX Code to include K_Type Patches iteration
+    final String daxCode = '''Final Airs Counting (Consolidado Total) = 
+SUMX(
+    VALUES('9K'[K_Type Patches]),
     SUMX(
         VALUES('9K'[release_instance]),
         [Final Airs Counting (FC a FC)]
@@ -86,11 +86,11 @@ IF(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Simulação da Correção DAX',
+                          'Simulação da Correção Completa',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          'Ative para ver os totais alinhados',
+                          'Iterando K_Type Patches + Release',
                           style: TextStyle(fontSize: 12, color: Colors.grey),
                         ),
                       ],
@@ -231,7 +231,7 @@ IF(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'Solução DAX para Copiar:',
+                        'Solução DAX Definitiva:',
                         style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       IconButton(
@@ -260,18 +260,18 @@ IF(
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.2),
+                      color: Colors.red.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: Colors.orange.withOpacity(0.5)),
+                      border: Border.all(color: Colors.red.withOpacity(0.5)),
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.warning_amber_rounded, color: Colors.orangeAccent),
+                        Icon(Icons.error_outline, color: Colors.redAccent),
                         SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'IMPORTANTE: Esta medida substitui a antiga APENAS no gráfico.',
-                            style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 13),
+                            'O problema era o "K_Type Patches"! O Card soma 5K + 9K, mas o gráfico estava fazendo Distinct Count e perdendo duplicatas.',
+                            style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 13),
                           ),
                         ),
                       ],
@@ -279,19 +279,15 @@ IF(
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'Como aplicar no Power BI:',
+                    'Por que ainda dava erro?',
                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  _buildStep(1, 'Crie uma "Nova Medida" na sua tabela.'),
-                  _buildStep(2, 'Cole o código acima.'),
-                  _buildStep(3, 'No seu Gráfico Stacked Column, vá nas configurações.'),
-                  _buildStep(4, 'Remova a medida antiga do Eixo Y (Valores).'),
-                  _buildStep(5, 'Arraste esta NOVA medida para o Eixo Y.'),
-                  const SizedBox(height: 8),
                   Text(
-                    'Isso garante que o gráfico some as partes (A+B+C) em vez de fazer uma contagem distinta global, resolvendo a diferença de 8 unidades.',
-                    style: TextStyle(color: Colors.grey.shade400, fontSize: 13, fontStyle: FontStyle.italic),
+                    'Seu Card faz: SUMX(K_Type, SUMX(Release, ...)).\n'
+                    'O gráfico só quebrava por Release. Se um ID existe no "5K" e no "9K" dentro da mesma release, o gráfico contava 1, mas o Card contava 2.\n\n'
+                    'Esta nova fórmula força o gráfico a iterar também sobre o K_Type Patches, garantindo que a soma bata 100% com o Card.',
+                    style: TextStyle(color: Colors.grey.shade300, fontSize: 13),
                   ),
                 ],
               ),
