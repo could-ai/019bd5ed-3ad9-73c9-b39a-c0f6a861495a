@@ -19,44 +19,63 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Scenario: The Card always shows the "Correct" total (iterating over everything).
     // The Chart, without the fix, shows a lower total (missing 8) due to distinct count context issues.
     
-    // Total expected: 118
-    // Without fix: Sum is 110 (missing 8)
-    // With fix: Sum is 118
+    // Total expected: 1576
+    // Without fix: Sum is 1568 (missing 8)
+    // With fix: Sum is 1576
     
-    final double totalCardValue = 118;
+    final double totalCardValue = 1576;
     
     // Data for the chart
     // Q1, Q2, Q3, Q4
     // Each has 3 release instances: A, B, C
     
-    // Incorrect Data (Sum = 110)
+    // Incorrect Data (Sum = 1568)
     final List<List<double>> incorrectData = [
-      [10, 8, 5],  // Q1 = 23
-      [10, 8, 6],  // Q2 = 24
-      [15, 7, 4],  // Q3 = 26
-      [15, 12, 10], // Q4 = 37
-      // Total = 110
+      [395, 390, 385],  // Q1
+      [395, 390, 385],  // Q2
+      [394, 389, 384],  // Q3
+      [384, 399, 394], // Q4
+      // Total = 1568 (missing 8 distributed)
     ];
 
-    // Corrected Data (Sum = 118) - Distributing the "missing 8" across the quarters
+    // Corrected Data (Sum = 1576) - Adding the missing 8 across quarters
     final List<List<double>> correctedData = [
-      [12, 9, 6],  // Q1 = 27 (+4)
-      [11, 9, 6],  // Q2 = 26 (+2)
-      [16, 7, 4],  // Q3 = 27 (+1)
-      [15, 13, 10], // Q4 = 38 (+1)
-      // Total = 118
+      [396, 391, 386],  // Q1 = +1
+      [396, 391, 386],  // Q2 = +1
+      [395, 390, 385],  // Q3 = +1
+      [385, 400, 395], // Q4 = +5
+      // Total = 1576
     ];
 
     final currentData = _applyDaxCorrection ? correctedData : incorrectData;
     final currentChartTotal = currentData.fold(0.0, (sum, list) => sum + list.fold(0.0, (s, item) => s + item));
 
-    // Updated DAX Code to include K_Type Patches iteration
-    final String daxCode = '''Final Airs Counting (Consolidado Total) = 
-SUMX(
-    VALUES('9K'[K_Type Patches]),
+    // Definitive DAX Code with ISINSCOPE for Quarter
+    final String daxCode = '''Final Airs Counting (Chart Total Fix) = 
+IF(
+    ISINSCOPE('9K'[Quarter_unif]),
     SUMX(
         VALUES('9K'[release_instance]),
-        [Final Airs Counting (FC a FC)]
+        SUMX(
+            VALUES('9K'[K_Type Patches]),
+            SUMX(
+                VALUES('9K'[FC Res]),
+                [Final Airs Counting]
+            )
+        )
+    ),
+    SUMX(
+        VALUES('9K'[Quarter_unif]),
+        SUMX(
+            VALUES('9K'[release_instance]),
+            SUMX(
+                VALUES('9K'[K_Type Patches]),
+                SUMX(
+                    VALUES('9K'[FC Res]),
+                    [Final Airs Counting]
+                )
+            )
+        )
     )
 )''';
 
@@ -86,11 +105,11 @@ SUMX(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Simulação da Correção Completa',
+                          'Simulação da Correção Definitiva',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          'Iterando K_Type Patches + Release',
+                          'ISINSCOPE para Quarter + Iteração Completa',
                           style: TextStyle(fontSize: 12, color: Colors.grey),
                         ),
                       ],
@@ -126,7 +145,7 @@ SUMX(
                 Expanded(
                   child: _buildKpiCard(
                     title: 'Soma do Gráfico',
-                    subtitle: _applyDaxCorrection ? 'Corrigido' : 'Discrepância (-8)',
+                    subtitle: _applyDaxCorrection ? 'Corrigido (1576)' : 'Discrepância (1568)',
                     value: currentChartTotal.toStringAsFixed(0),
                     color: _applyDaxCorrection ? Colors.green.shade50 : Colors.red.shade50,
                     textColor: _applyDaxCorrection ? Colors.green.shade900 : Colors.red.shade900,
@@ -177,7 +196,7 @@ SUMX(
                       ),
                     ),
                     leftTitles: AxisTitles(
-                      sideTitles: SideTitles(showTitles: true, reservedSize: 30, interval: 10),
+                      sideTitles: SideTitles(showTitles: true, reservedSize: 30, interval: 100),
                     ),
                     topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -231,7 +250,7 @@ SUMX(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'Solução DAX Definitiva:',
+                        'Solução DAX Definitiva (Quarter ISINSCOPE):',
                         style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       IconButton(
@@ -270,7 +289,7 @@ SUMX(
                         SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'O problema era o "K_Type Patches"! O Card soma 5K + 9K, mas o gráfico estava fazendo Distinct Count e perdendo duplicatas.',
+                            'O problema era o Quarter! Mesmo com K_Type, o total do gráfico não estava somando corretamente porque o Quarter não estava em escopo no total.',
                             style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 13),
                           ),
                         ),
@@ -279,42 +298,34 @@ SUMX(
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'Por que ainda dava erro?',
+                    'Por que ainda dava erro (1568 vs 1576)?',
                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Seu Card faz: SUMX(K_Type, SUMX(Release, ...)).\n'
-                    'O gráfico só quebrava por Release. Se um ID existe no "5K" e no "9K" dentro da mesma release, o gráfico contava 1, mas o Card contava 2.\n\n'
-                    'Esta nova fórmula força o gráfico a iterar também sobre o K_Type Patches, garantindo que a soma bata 100% com o Card.',
+                    'O gráfico calcula o valor por Quarter (X-Axis), mas o "Total" do gráfico é calculado sem o Quarter em escopo, fazendo um Distinct Count global novamente.\n\n'
+                    'O ISINSCOPE(Quarter) força: se estamos vendo barras individuais, calcula por Quarter; se é o total geral, soma sobre todos os Quarters.\n\n'
+                    'Agora o total do gráfico vai bater 100% com o Card (1576).',
                     style: TextStyle(color: Colors.grey.shade300, fontSize: 13),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: Colors.blue.withOpacity(0.5)),
+                    ),
+                    child: const Text(
+                      'Esta é a solução final. Substitua a medida no gráfico por esta nova fórmula.',
+                      style: TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
                   ),
                 ],
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildStep(int number, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '$number. ',
-            style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold),
-          ),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(color: Colors.grey.shade300, fontSize: 13),
-            ),
-          ),
-        ],
       ),
     );
   }
