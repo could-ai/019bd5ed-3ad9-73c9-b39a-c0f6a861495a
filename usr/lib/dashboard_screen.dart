@@ -20,17 +20,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Table (Converted Chart) = 1576.
     // Card (DAX Sum) = 1576.
     
-    // Logic:
-    // The Table proves the data EXISTS (1576).
-    // The Chart is HIDING the "Blank" category (8 items).
-    // To make the Card match the Chart (1568), we must exclude Blanks in the Card measure.
-    
     final double chartTotal = 1568;
     final double tableTotal = 1576;
     
     // Card Value:
-    // Without filter: 1576 (Includes Blank Quarter)
-    // With filter: 1568 (Excludes Blank Quarter to match Chart)
+    // Without filter: 1576 (Includes Blank/Empty Strings)
+    // With filter: 1568 (Excludes Empty Strings to match Chart)
     final double cardValue = _filterBlanks ? 1568 : 1576;
 
     // Data for the chart (Visual representation of 1568)
@@ -42,20 +37,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
       // Total = 1568
     ];
 
-    // DAX Code: Explicitly Removing Blanks to Match Chart
-    final String daxCode = '''Card Match Chart (Final) = 
+    // DAX Code: Handling Empty Strings ("") which ISBLANK misses
+    final String daxCode = '''Card Match Chart (String Fix) = 
 CALCULATE(
     [Final Airs Counting (FC a FC)],
+    '9K'[Quarter_unif] <> "",
+    '9K'[release_instance] <> "",
     NOT ISBLANK('9K'[Quarter_unif]),
     NOT ISBLANK('9K'[release_instance])
 )
--- O Gráfico esconde automaticamente Quarter/Release vazio.
--- A Tabela mostra tudo (por isso dá 1576).
--- Este código força o Card a ignorar os vazios, batendo 1568.''';
+-- Se ISBLANK não funcionou, é quase certo que são "Textos Vazios" ("").
+-- O Power BI trata "" diferente de BLANK().
+-- O Gráfico esconde os dois. A Tabela mostra.
+-- Este código remove ambos para bater 1568.''';
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Diagnóstico Final: Tabela vs Gráfico'),
+        title: const Text('Diagnóstico: Texto Vazio vs Blank'),
         backgroundColor: Colors.blueGrey[900],
         foregroundColor: Colors.white,
       ),
@@ -68,36 +66,36 @@ CALCULATE(
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.orange.shade50,
+                color: Colors.amber.shade50,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.orange.shade200),
+                border: Border.all(color: Colors.amber.shade200),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.lightbulb, color: Colors.orange),
+                      Icon(Icons.warning_amber_rounded, color: Colors.amber),
                       SizedBox(width: 8),
                       Text(
-                        'Achei o problema! (Tabela = 1576)',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.deepOrange),
+                        'ISBLANK falhou? Então são "Strings Vazias"!',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.brown),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Se a Tabela mostra 1576 e o Gráfico mostra 1568, isso confirma 100%:',
+                    'Se o filtro "NOT ISBLANK" não mudou o valor de 1576, significa que os campos NÃO são nulos (null).',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    'Existem 8 itens com "Quarter" ou "Release" em BRANCO (Blank).',
+                    'Eles provavelmente contêm um texto vazio ("") que parece branco, mas conta como valor válido para o DAX.',
                     style: TextStyle(fontSize: 14),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    '• A Tabela mostra uma linha "(Blank)" com valor 8.\n• O Gráfico não consegue desenhar uma barra sem nome, então ele esconde.\n• O Card soma tudo (1576).',
+                    '• O Gráfico esconde "" automaticamente.\n• A Tabela mostra "" (pode parecer uma linha fina vazia).\n• O Card soma tudo.',
                     style: TextStyle(fontSize: 13),
                   ),
                 ],
@@ -121,11 +119,11 @@ CALCULATE(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Aplicar Correção no Card',
+                          'Filtrar Strings Vazias ("")',
                           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueAccent),
                         ),
                         Text(
-                          'Ignorar Blanks para bater com o Gráfico',
+                          'Remover itens com texto vazio',
                           style: TextStyle(fontSize: 12, color: Colors.black54),
                         ),
                       ],
@@ -150,8 +148,8 @@ CALCULATE(
               children: [
                 Expanded(
                   child: _buildKpiCard(
-                    title: 'Tabela (Dados Reais)',
-                    subtitle: 'Inclui Blanks (1576)',
+                    title: 'Tabela',
+                    subtitle: 'Mostra Vazios (1576)',
                     value: tableTotal.toStringAsFixed(0),
                     color: Colors.grey.shade100,
                     textColor: Colors.black87,
@@ -161,8 +159,8 @@ CALCULATE(
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildKpiCard(
-                    title: 'Gráfico (Visual)',
-                    subtitle: 'Esconde Blanks (1568)',
+                    title: 'Gráfico',
+                    subtitle: 'Esconde Vazios (1568)',
                     value: chartTotal.toStringAsFixed(0),
                     color: Colors.blue.shade50,
                     textColor: Colors.blue.shade900,
@@ -174,7 +172,7 @@ CALCULATE(
             const SizedBox(height: 12),
             _buildKpiCard(
               title: 'Seu Card (Meta)',
-              subtitle: _filterBlanks ? 'Corrigido (Ignora Blanks)' : 'Original (Conta Blanks)',
+              subtitle: _filterBlanks ? 'Corrigido (Sem "")' : 'Original (Com "")',
               value: cardValue.toStringAsFixed(0),
               color: _filterBlanks ? Colors.green.shade50 : Colors.red.shade50,
               textColor: _filterBlanks ? Colors.green.shade900 : Colors.red.shade900,
@@ -205,7 +203,7 @@ CALCULATE(
                     children: [
                       const Expanded(
                         child: Text(
-                          'Solução Final (Card = 1568):',
+                          'Nova Tentativa (Remove ""):',
                           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                       ),
@@ -235,18 +233,18 @@ CALCULATE(
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.2),
+                      color: Colors.amber.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: Colors.orange.withOpacity(0.5)),
+                      border: Border.all(color: Colors.amber.withOpacity(0.5)),
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.check_circle, color: Colors.orangeAccent),
+                        Icon(Icons.info_outline, color: Colors.amberAccent),
                         SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Use esta medida no CARD. Ela remove os itens sem Quarter/Release, fazendo o valor cair para 1568 e bater com o gráfico.',
-                            style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 13),
+                            'Adicionei a verificação <> "" (diferente de vazio). Isso pega casos que o ISBLANK deixa passar.',
+                            style: TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold, fontSize: 13),
                           ),
                         ),
                       ],
