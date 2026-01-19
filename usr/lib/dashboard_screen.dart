@@ -68,7 +68,7 @@ RETURN
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Diagnóstico: Forçar Contexto'),
+        title: const Text('Meta: 1568 (Igual ao Gráfico)'),
         backgroundColor: Colors.blueGrey[900],
         foregroundColor: Colors.white,
       ),
@@ -77,41 +77,36 @@ RETURN
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Diagnosis Section
+            // Goal Section
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.red.shade50,
+                color: Colors.green.shade50,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.red.shade200),
+                border: Border.all(color: Colors.green.shade200),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.warning_amber_rounded, color: Colors.red),
+                      Icon(Icons.flag, color: Colors.green),
                       SizedBox(width: 8),
                       Text(
-                        'Diagnóstico Final: REMOVEFILTERS',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red),
+                        'O Objetivo é 1568!',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.green),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Você mencionou que sua medida original usa "REMOVEFILTERS".',
+                    'Você perguntou "quanto eu quero que dê?". A resposta é 1568.',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    'Isso é o culpado! O REMOVEFILTERS está ignorando o nosso filtro de "não vazio" e calculando tudo (1576) mesmo quando pedimos para filtrar.',
+                    'O código que você colou antes (Sum of Parts) deu 1576 porque a sua medida original provavelmente tem um "REMOVEFILTERS" ou "ALL" que ignora o nosso filtro.',
                     style: TextStyle(fontSize: 14),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Solução: Precisamos "Forçar" o filtro de volta usando variáveis dentro do SUMX.',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -134,7 +129,7 @@ RETURN
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Simular "Forçar Contexto"',
+                          'Simular Solução "Forçar Contexto"',
                           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueAccent),
                         ),
                         Text(
@@ -163,34 +158,34 @@ RETURN
               children: [
                 Expanded(
                   child: _buildKpiCard(
-                    title: 'Tabela',
-                    subtitle: 'Mostra Tudo (1576)',
+                    title: 'Tabela / Código Antigo',
+                    subtitle: 'Mostra Tudo',
                     value: tableTotal.toStringAsFixed(0),
-                    color: Colors.grey.shade100,
-                    textColor: Colors.black87,
-                    icon: Icons.table_chart,
+                    color: Colors.red.shade50,
+                    textColor: Colors.red.shade900,
+                    icon: Icons.close,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildKpiCard(
-                    title: 'Gráfico',
-                    subtitle: 'Soma Barras (1568)',
+                    title: 'Gráfico (Meta)',
+                    subtitle: 'Soma Barras',
                     value: chartTotal.toStringAsFixed(0),
-                    color: Colors.blue.shade50,
-                    textColor: Colors.blue.shade900,
-                    icon: Icons.bar_chart,
+                    color: Colors.green.shade50,
+                    textColor: Colors.green.shade900,
+                    icon: Icons.check_circle,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
             _buildKpiCard(
-              title: 'Seu Card (Novo)',
-              subtitle: _filterBlanks ? 'Filtro Forçado (1568)' : 'Filtro Ignorado (1576)',
+              title: 'Seu Card (Novo Código)',
+              subtitle: _filterBlanks ? 'Sucesso (1568)' : 'Ainda Falhando (1576)',
               value: cardValue.toStringAsFixed(0),
-              color: _filterBlanks ? Colors.green.shade50 : Colors.red.shade50,
-              textColor: _filterBlanks ? Colors.green.shade900 : Colors.red.shade900,
+              color: _filterBlanks ? Colors.blue.shade50 : Colors.orange.shade50,
+              textColor: _filterBlanks ? Colors.blue.shade900 : Colors.orange.shade900,
               icon: Icons.functions,
             ),
             
@@ -218,7 +213,7 @@ RETURN
                     children: [
                       const Expanded(
                         child: Text(
-                          'Solução "Forçar Contexto":',
+                          'Solução Definitiva (Forçar Contexto):',
                           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                       ),
@@ -248,45 +243,21 @@ RETURN
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.2),
+                      color: Colors.orange.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: Colors.blue.withOpacity(0.5)),
+                      border: Border.all(color: Colors.orange.withOpacity(0.5)),
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.info_outline, color: Colors.lightBlueAccent),
+                        Icon(Icons.lightbulb_outline, color: Colors.orangeAccent),
                         SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Capturamos o Quarter e Release em variáveis e passamos para o CALCULATE. Isso "vence" o REMOVEFILTERS da medida original.',
-                            style: TextStyle(color: Colors.lightBlueAccent, fontWeight: FontWeight.bold, fontSize: 13),
+                            'O segredo está no CALCULATE dentro do SUMX. Ele pega o Quarter/Release da linha e OBRIGA a medida a respeitá-lo, vencendo qualquer REMOVEFILTERS interno.',
+                            style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 13),
                           ),
                         ),
                       ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // Debug Tip
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.yellow.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.yellow.shade600),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.search, color: Colors.orange),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Dica: Na sua Tabela que dá 1576, procure por uma linha onde o Quarter ou Release esteja vazio. É lá que estão os 8 itens extras!',
-                      style: TextStyle(color: Colors.brown, fontSize: 13),
                     ),
                   ),
                 ],
