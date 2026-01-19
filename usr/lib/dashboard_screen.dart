@@ -257,6 +257,27 @@ IF(
                     ),
                   ),
                   const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: Colors.orange.withOpacity(0.5)),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.warning_amber_rounded, color: Colors.orangeAccent),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'IMPORTANTE: Esta medida substitui a antiga APENAS no gráfico.',
+                            style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   const Text(
                     'Como aplicar no Power BI:',
                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -264,10 +285,12 @@ IF(
                   const SizedBox(height: 8),
                   _buildStep(1, 'Crie uma "Nova Medida" na sua tabela.'),
                   _buildStep(2, 'Cole o código acima.'),
-                  _buildStep(3, 'Substitua a medida antiga no Eixo Y do gráfico pela nova.'),
+                  _buildStep(3, 'No seu Gráfico Stacked Column, vá nas configurações.'),
+                  _buildStep(4, 'Remova a medida antiga do Eixo Y (Valores).'),
+                  _buildStep(5, 'Arraste esta NOVA medida para o Eixo Y.'),
                   const SizedBox(height: 8),
                   Text(
-                    'Isso força o PBI a somar os valores das releases individuais (SUMX) em vez de fazer uma contagem distinta global, recuperando os 8 itens "perdidos" na sobreposição.',
+                    'Isso garante que o gráfico some as partes (A+B+C) em vez de fazer uma contagem distinta global, resolvendo a diferença de 8 unidades.',
                     style: TextStyle(color: Colors.grey.shade400, fontSize: 13, fontStyle: FontStyle.italic),
                   ),
                 ],
@@ -281,7 +304,7 @@ IF(
 
   Widget _buildStep(int number, String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4.0),
+      padding: const EdgeInsets.only(bottom: 6.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
