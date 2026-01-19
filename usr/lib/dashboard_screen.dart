@@ -50,30 +50,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final currentData = _applyDaxCorrection ? correctedData : incorrectData;
     final currentChartTotal = currentData.fold(0.0, (sum, list) => sum + list.fold(0.0, (s, item) => s + item));
 
-    // Definitive DAX Code with ISINSCOPE for Quarter
-    final String daxCode = '''Final Airs Counting (Chart Total Fix) = 
-IF(
-    ISINSCOPE('9K'[Quarter_unif]),
+    // Definitive DAX Code: Replication of the Card Logic
+    final String daxCode = '''Final Airs Counting (Chart Fix) = 
+SUMX(
+    VALUES('9K'[Quarter_unif]),
     SUMX(
         VALUES('9K'[release_instance]),
         SUMX(
             VALUES('9K'[K_Type Patches]),
             SUMX(
                 VALUES('9K'[FC Res]),
-                [Final Airs Counting]
-            )
-        )
-    ),
-    SUMX(
-        VALUES('9K'[Quarter_unif]),
-        SUMX(
-            VALUES('9K'[release_instance]),
-            SUMX(
-                VALUES('9K'[K_Type Patches]),
-                SUMX(
-                    VALUES('9K'[FC Res]),
-                    [Final Airs Counting]
-                )
+                [Final Airs Counting (FC a FC)]
             )
         )
     )
@@ -105,11 +92,11 @@ IF(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Simulação da Correção Definitiva',
+                          'Simulação da Correção "Nuclear"',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          'ISINSCOPE para Quarter + Iteração Completa',
+                          'Forçar Iteração Completa (Igual ao Card)',
                           style: TextStyle(fontSize: 12, color: Colors.grey),
                         ),
                       ],
@@ -249,9 +236,11 @@ IF(
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Solução DAX Definitiva (Quarter ISINSCOPE):',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                      const Expanded(
+                        child: Text(
+                          'Solução "Nuclear" (Cópia Exata do Card):',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.copy, color: Colors.white70),
@@ -279,18 +268,18 @@ IF(
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.2),
+                      color: Colors.orange.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: Colors.red.withOpacity(0.5)),
+                      border: Border.all(color: Colors.orange.withOpacity(0.5)),
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.error_outline, color: Colors.redAccent),
+                        Icon(Icons.warning_amber_rounded, color: Colors.orangeAccent),
                         SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'O problema era o Quarter! Mesmo com K_Type, o total do gráfico não estava somando corretamente porque o Quarter não estava em escopo no total.',
-                            style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 13),
+                            'Se o Card está certo, o Gráfico TEM que fazer a mesma conta. Esta fórmula força o gráfico a iterar Quarter > Release > K_Type > FC Res, igualzinho ao Card.',
+                            style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 13),
                           ),
                         ),
                       ],
@@ -298,28 +287,13 @@ IF(
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'Por que ainda dava erro (1568 vs 1576)?',
+                    'Por que as outras falharam?',
                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'O gráfico calcula o valor por Quarter (X-Axis), mas o "Total" do gráfico é calculado sem o Quarter em escopo, fazendo um Distinct Count global novamente.\n\n'
-                    'O ISINSCOPE(Quarter) força: se estamos vendo barras individuais, calcula por Quarter; se é o total geral, soma sobre todos os Quarters.\n\n'
-                    'Agora o total do gráfico vai bater 100% com o Card (1576).',
+                    'As tentativas anteriores tentavam ser "inteligentes" usando o contexto do gráfico (ISINSCOPE). Mas como o seu modelo de dados é complexo (K_Type escondido, FC Res iterado), a única forma de garantir 100% de igualdade é replicar a lógica "bruta" do Card dentro da medida do gráfico.',
                     style: TextStyle(color: Colors.grey.shade300, fontSize: 13),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: Colors.blue.withOpacity(0.5)),
-                    ),
-                    child: const Text(
-                      'Esta é a solução final. Substitua a medida no gráfico por esta nova fórmula.',
-                      style: TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 13),
-                    ),
                   ),
                 ],
               ),
