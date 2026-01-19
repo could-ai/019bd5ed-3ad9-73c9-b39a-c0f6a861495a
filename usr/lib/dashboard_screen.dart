@@ -37,8 +37,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       // Total = 1568
     ];
 
-    // DAX Code: SUMX over SUMMARIZE (Sum of Parts)
-    final String daxCode = '''Card Match Chart (Sum of Parts) = 
+    // DAX Code: Force Context (Re-applying filters)
+    final String daxCode = '''Card Match Chart (Force Context) = 
 VAR TabelaVirtual = 
     FILTER(
         SUMMARIZE(
@@ -46,18 +46,29 @@ VAR TabelaVirtual =
             '9K'[Quarter_unif], 
             '9K'[release_instance]
         ),
-        -- 1. Cria a estrutura do gráfico (Quarter x Release)
-        -- 2. Remove explicitamente os vazios que o gráfico esconde
-        NOT ISBLANK('9K'[Quarter_unif]) && '9K'[Quarter_unif] <> "" &&
-        NOT ISBLANK('9K'[release_instance]) && '9K'[release_instance] <> ""
+        -- 1. Remove vazios e espaços em branco
+        LEN(TRIM('9K'[Quarter_unif])) > 0 && 
+        LEN(TRIM('9K'[release_instance])) > 0
     )
 RETURN
-    -- 3. Calcula barra a barra e soma (Força Bruta)
-    SUMX(TabelaVirtual, [Final Airs Counting (FC a FC)])''';
+    SUMX(
+        TabelaVirtual, 
+        VAR CurrentQuarter = '9K'[Quarter_unif]
+        VAR CurrentRelease = '9K'[release_instance]
+        RETURN
+        -- 2. FORÇA o filtro de volta. 
+        -- Se a medida original usa REMOVEFILTERS, isso aqui anula o efeito
+        -- e obriga ela a respeitar o Quarter/Release atual.
+        CALCULATE(
+            [Final Airs Counting (FC a FC)],
+            '9K'[Quarter_unif] = CurrentQuarter,
+            '9K'[release_instance] = CurrentRelease
+        )
+    )''';
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Diagnóstico: Soma das Partes'),
+        title: const Text('Diagnóstico: Forçar Contexto'),
         backgroundColor: Colors.blueGrey[900],
         foregroundColor: Colors.white,
       ),
@@ -70,37 +81,37 @@ RETURN
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.orange.shade50,
+                color: Colors.red.shade50,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.orange.shade200),
+                border: Border.all(color: Colors.red.shade200),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.lightbulb_outline, color: Colors.deepOrange),
+                      Icon(Icons.warning_amber_rounded, color: Colors.red),
                       SizedBox(width: 8),
                       Text(
-                        'Nova Abordagem: "Soma das Partes"',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.brown),
+                        'Diagnóstico Final: REMOVEFILTERS',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Se os filtros simples não funcionaram, o problema é que a sua medida é "Não-Aditiva".',
+                    'Você mencionou que sua medida original usa "REMOVEFILTERS".',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    'Isso significa que calcular o Total Geral direto dá um resultado diferente de somar cada barrinha individualmente.',
+                    'Isso é o culpado! O REMOVEFILTERS está ignorando o nosso filtro de "não vazio" e calculando tudo (1576) mesmo quando pedimos para filtrar.',
                     style: TextStyle(fontSize: 14),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    '• O Gráfico soma as barrinhas (1568).\n• O Card calcula o todo de uma vez (1576).\n• Solução: Forçar o Card a calcular barra a barra e somar.',
-                    style: TextStyle(fontSize: 13),
+                    'Solução: Precisamos "Forçar" o filtro de volta usando variáveis dentro do SUMX.',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -123,11 +134,11 @@ RETURN
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Simular "Soma das Partes"',
+                          'Simular "Forçar Contexto"',
                           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueAccent),
                         ),
                         Text(
-                          'Iterar Quarter/Release e remover vazios',
+                          'Re-aplicar filtros explicitamente',
                           style: TextStyle(fontSize: 12, color: Colors.black54),
                         ),
                       ],
@@ -175,8 +186,8 @@ RETURN
             ),
             const SizedBox(height: 12),
             _buildKpiCard(
-              title: 'Seu Card (Meta)',
-              subtitle: _filterBlanks ? 'Igual Gráfico (Soma Partes)' : 'Cálculo Direto (Total)',
+              title: 'Seu Card (Novo)',
+              subtitle: _filterBlanks ? 'Filtro Forçado (1568)' : 'Filtro Ignorado (1576)',
               value: cardValue.toStringAsFixed(0),
               color: _filterBlanks ? Colors.green.shade50 : Colors.red.shade50,
               textColor: _filterBlanks ? Colors.green.shade900 : Colors.red.shade900,
@@ -207,7 +218,7 @@ RETURN
                     children: [
                       const Expanded(
                         child: Text(
-                          'Solução "Soma das Partes":',
+                          'Solução "Forçar Contexto":',
                           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                       ),
@@ -247,11 +258,35 @@ RETURN
                         SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Usamos SUMX + SUMMARIZE para recriar a lógica do gráfico: calcular cada pedaço separadamente e somar no final, ignorando os vazios.',
+                            'Capturamos o Quarter e Release em variáveis e passamos para o CALCULATE. Isso "vence" o REMOVEFILTERS da medida original.',
                             style: TextStyle(color: Colors.lightBlueAccent, fontWeight: FontWeight.bold, fontSize: 13),
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 20),
+            
+            // Debug Tip
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.yellow.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.yellow.shade600),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.search, color: Colors.orange),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Dica: Na sua Tabela que dá 1576, procure por uma linha onde o Quarter ou Release esteja vazio. É lá que estão os 8 itens extras!',
+                      style: TextStyle(color: Colors.brown, fontSize: 13),
                     ),
                   ),
                 ],
