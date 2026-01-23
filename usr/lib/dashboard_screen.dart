@@ -12,38 +12,34 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
-    final double chartTotal = 1568;
-    final double tableTotal = 1576;
-    
-    // DAX Code: Detective Measure
-    final String detectiveCode = '''Check Hidden Values = 
-VAR QtdCaracteres = LEN(TRIM(SELECTEDVALUE('9K'[Quarter_unif])))
-VAR Valor = [Final Airs Counting (FC a FC)]
-RETURN
-    IF(
-        QtdCaracteres = 0 || ISBLANK(QtdCaracteres), 
-        "⚠️ FANTASMA ENCONTRADO (" & Valor & ")", 
-        "OK"
-    )''';
-
-    // Presentation Script
+    // Presentation Script for FTSE 100 GARCH Analysis
     final String presentationScript = '''
-• Aponte para a linha do histórico/ajuste:
-"Como podem ver pelo comportamento da linha, o modelo capturou perfeitamente a sazonalidade anual."
+• Slide 1: Contexto (Log-retornos)
+"Analisando os log-retornos do FTSE 100, vemos oscilação em torno de zero (sem tendência), mas com 'clusters' de volatilidade. Períodos calmos alternam com instáveis, justificando o uso de modelos GARCH para captar essa dinâmica."
 
-• Aponte para a parte dos resíduos:
-"Validamos o modelo porque os resíduos estão centrados em zero e sem padrões, ou seja, removemos todo o ruído necessário."
+• Slide 2: Seleção do Modelo
+"Estimamos modelos EGARCH e GJR-GARCH com distribuições t-Student (simétrica e assimétrica). Comparando AIC e BIC, o EGARCH(1,1) com t-Student assimétrica foi o escolhido. Embora o (2,1) tivesse um AIC ligeiramente melhor, o BIC (que penaliza complexidade) favoreceu o (1,1) por ser mais parcimonioso."
 
-• Aponte para a projeção final:
-"As previsões são suaves. Notem como o intervalo de confiança aumenta no final, o que é natural."
-
-• Conclusão:
-"Em resumo: empata com o Holt-Winters, mas o SARIMA continua a ser superior com erros mais baixos."
+• Slide 3: Diagnóstico e Conclusão
+"O modelo confirma que a volatilidade é persistente e existe efeito de alavancagem (más notícias afetam mais o mercado). O QQ-Plot mostra os resíduos alinhados à reta, validando a distribuição t-Student assimétrica e o bom ajuste do modelo."
 ''';
+
+    // Model Details for the "Code" section
+    final String selectedModelDetails = '''Modelo: EGARCH(1,1)
+Distribuição: t-Student Assimétrica (sstd)
+Critério de Escolha: BIC (Melhor trade-off ajuste/simplicidade)
+
+AIC: -6.58747 (Muito próximo do modelo 2,1)
+BIC: -6.582467 (Menor valor = Melhor escolha)
+
+Características Capturadas:
+- Persistência da volatilidade
+- Efeito de Alavancagem (Leverage Effect)
+- Caudas pesadas (Fat tails)''';
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Investigação & Apresentação'),
+        title: const Text('Análise GARCH: FTSE 100'),
         backgroundColor: Colors.indigo[900],
         foregroundColor: Colors.white,
       ),
@@ -106,80 +102,80 @@ RETURN
             const Divider(thickness: 2),
             const SizedBox(height: 24),
 
-            // Alert Section (Previous Context)
+            // Context Section (Slide 1)
             const Text(
-              "Investigação Power BI (Contexto Anterior)",
+              "1. Análise da Série (Slide 1)",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey),
             ),
             const SizedBox(height: 10),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.orange.shade50,
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.orange.shade300),
+                border: Border.all(color: Colors.grey.shade300),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.search, color: Colors.orange),
+                      Icon(Icons.show_chart, color: Colors.indigo),
                       SizedBox(width: 8),
                       Text(
-                        'Se não há "Blanks", o que são?',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.deepOrange),
+                        'Comportamento dos Log-retornos',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.indigo),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  const Text(
-                    'Se você converteu o gráfico em Tabela e viu 1576, mas a soma visual das barras dá 1568, temos 3 suspeitos principais:',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  _buildSuspectItem(
-                    '1. O "Espaço em Branco" (Space)',
-                    'Existe alguma categoria cujo nome é apenas um espaço " "? O Power BI não considera isso como BLANK, mas no gráfico fica invisível.',
-                  ),
-                  _buildSuspectItem(
-                    '2. Valores Muito Pequenos',
-                    'Você tem barras com valor 1 ou 2? Elas podem estar tão finas que somem no gráfico, mas contam na tabela. A diferença é pequena (8 unidades).',
-                  ),
-                  _buildSuspectItem(
-                    '3. Linhas sem Correspondência',
-                    'Mesmo que sua coluna original não tenha blanks, o relacionamento entre tabelas pode gerar uma linha em branco na visualização se não houver match.',
-                  ),
+                  _buildBulletPoint('Média zero: Ausência de tendência.'),
+                  _buildBulletPoint('Volatilidade variável: Períodos de calmaria vs. instabilidade.'),
+                  _buildBulletPoint('Conclusão: Necessidade de modelos GARCH para modelar a variância condicional.'),
                 ],
               ),
             ),
             
             const SizedBox(height: 20),
 
-            // Action Plan
+            // Selection Section (Slide 2)
             const Text(
-              "Como achar os culpados agora:",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              "2. Seleção do Modelo (Slide 2)",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey),
             ),
             const SizedBox(height: 10),
-            
-            _buildActionCard(
-              icon: Icons.sort,
-              title: 'Passo 1: Ordene a Tabela',
-              description: 'Na sua Tabela de 1576, clique no cabeçalho da coluna de VALOR para ordenar do menor para o maior. Veja se aparecem linhas com valores pequenos (1, 2, etc) ou linhas sem nome no topo.',
+            _buildInfoCard(
+              icon: Icons.compare_arrows,
+              title: 'EGARCH(1,1) vs EGARCH(2,1)',
+              description: 'O modelo (2,1) teve AIC ligeiramente menor (-6.588 vs -6.587), mas a diferença é ínfima. O BIC penalizou a complexidade extra do (2,1).',
+              highlight: 'Vencedor: EGARCH(1,1) sstd (Mais parcimonioso)',
             ),
-            
-            const SizedBox(height: 10),
 
-            _buildActionCard(
-              icon: Icons.code,
-              title: 'Passo 2: Use o "Detector"',
-              description: 'Crie esta medida temporária e arraste para a sua Tabela. Ela vai gritar onde está o problema.',
+            const SizedBox(height: 20),
+
+            // Diagnostics Section (Slide 3)
+            const Text(
+              "3. Diagnóstico Final (Slide 3)",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey),
+            ),
+            const SizedBox(height: 10),
+             _buildInfoCard(
+              icon: Icons.check_circle_outline,
+              title: 'Validação do Modelo',
+              description: 'QQ-Plot mostra resíduos alinhados com a distribuição teórica. Captura bem caudas pesadas e assimetria.',
+              highlight: 'Conclusão: Modelo bem especificado.',
             ),
 
             const SizedBox(height: 16),
             
-            // Code Section
+            // Technical Details Section
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -193,15 +189,15 @@ RETURN
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'Medida Detetive:',
+                        'Ficha Técnica do Modelo:',
                         style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                       ),
                       IconButton(
                         icon: const Icon(Icons.copy, color: Colors.white70),
                         onPressed: () {
-                          Clipboard.setData(ClipboardData(text: detectiveCode));
+                          Clipboard.setData(ClipboardData(text: selectedModelDetails));
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Código copiado!')),
+                            const SnackBar(content: Text('Detalhes copiados!')),
                           );
                         },
                       ),
@@ -209,7 +205,7 @@ RETURN
                   ),
                   const Divider(color: Colors.white24),
                   Text(
-                    detectiveCode,
+                    selectedModelDetails,
                     style: const TextStyle(
                       color: Colors.greenAccent,
                       fontFamily: 'Courier',
@@ -225,7 +221,7 @@ RETURN
     );
   }
 
-  Widget _buildSuspectItem(String title, String desc) {
+  Widget _buildBulletPoint(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Row(
@@ -233,14 +229,9 @@ RETURN
         children: [
           const Icon(Icons.arrow_right, color: Colors.black54),
           Expanded(
-            child: RichText(
-              text: TextSpan(
-                style: const TextStyle(color: Colors.black87, fontSize: 14),
-                children: [
-                  TextSpan(text: '$title: ', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  TextSpan(text: desc),
-                ],
-              ),
+            child: Text(
+              text,
+              style: const TextStyle(color: Colors.black87, fontSize: 14),
             ),
           ),
         ],
@@ -248,16 +239,51 @@ RETURN
     );
   }
 
-  Widget _buildActionCard({required IconData icon, required String title, required String description}) {
+  Widget _buildInfoCard({required IconData icon, required String title, required String description, required String highlight}) {
     return Card(
       elevation: 2,
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: Colors.indigo.shade100,
-          child: Icon(icon, color: Colors.indigo),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: Colors.indigo.shade100,
+                  child: Icon(icon, color: Colors.indigo),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(description, style: const TextStyle(fontSize: 14)),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: Colors.green.shade200),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.star, size: 16, color: Colors.green),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      highlight,
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          ],
         ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(description),
       ),
     );
   }
