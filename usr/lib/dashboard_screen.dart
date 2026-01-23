@@ -18,30 +18,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
       color: Colors.blue.shade800,
       slides: [
         SlideData(
-          title: "Slide 1: Análise Exploratória (hor)",
-          visuals: "Gráfico da série temporal original + ACF/PACF.",
+          title: "Slide 1: Análise Inicial",
+          objective: "Caracterizar a série e identificar padrões (Q1, Q2, Q3).",
+          visuals: "Gráfico da série + ACF/PACF.",
           points: [
-            "Descrição: Série 'hor' (ex: dados mensais/trimestrais).",
-            "Visual: Tendência clara? Sazonalidade visível?",
-            "ACF/PACF: Confirmam a sazonalidade (picos repetidos)?",
+            "A série 'hor' tem tendência e sazonalidade claras.",
+            "Os picos no ACF confirmam que o padrão se repete.",
           ],
         ),
         SlideData(
-          title: "Slide 2: Métodos Determinísticos",
-          visuals: "Gráfico Médias Móveis vs Tendência Linear de Holt.",
+          title: "Slide 2: Suavização e Tendência",
+          objective: "Remover ruído e modelar a tendência (Q4, Q5).",
+          visuals: "Médias Móveis vs Tendência de Holt.",
           points: [
-            "Médias Móveis: Ordem 2 vs Ordem ideal. A suavização removeu o ruído?",
-            "Holt: Equações de previsão e suavização.",
-            "Conclusão: O método captou a tendência?",
+            "Médias Móveis: Suavizam a linha, mostrando melhor a direção.",
+            "Holt: Capta a tendência linear para prever o futuro.",
           ],
         ),
         SlideData(
           title: "Slide 3: Decomposição",
-          visuals: "Painel de 4 gráficos (Obs, Trend, Seas, Random) para Aditivo vs Multiplicativo.",
+          objective: "Separar o que é Tendência, Sazonalidade e Ruído (Q6).",
+          visuals: "Painel de 4 gráficos (Original, Tendência, Sazonal, Resíduos).",
           points: [
-            "Comparação: Aditivo vs Multiplicativo.",
-            "Decisão: Qual teve resíduos menores ou padrão mais estável?",
-            "Mostrar: Gráfico das componentes separadas.",
+            "Separamos a série nas suas 3 partes.",
+            "O modelo Multiplicativo funcionou melhor (resíduos menores).",
           ],
         ),
       ],
@@ -52,38 +52,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
       slides: [
         SlideData(
           title: "Slide 4: Holt-Winters",
-          visuals: "Gráfico Ajuste HW Aditivo vs Multiplicativo.",
+          objective: "Prever considerando Sazonalidade + Tendência (Q3).",
+          visuals: "Gráfico de Ajuste HW vs Original.",
           points: [
-            "Objetivo: Captar Sazonalidade + Tendência.",
-            "Melhor Modelo: Aditivo ou Multiplicativo? (Baseado no erro/visual).",
-            "Horizonte: Previsão para 12 períodos.",
+            "O método HW adapta-se bem aos picos sazonais.",
+            "Previsão para 12 meses segue o padrão histórico.",
           ],
         ),
         SlideData(
           title: "Slide 5: Modelação SARIMA",
-          visuals: "Tabela de Modelos Candidatos + Diagnóstico (Resíduos).",
+          objective: "Captar correlações complexas (Box-Jenkins) (Q4).",
+          visuals: "Tabela de Modelos + Gráfico de Previsão.",
           points: [
-            "Metodologia: Box-Jenkins (7 passos).",
-            "Seleção: Modelo com menor AIC/BIC e resíduos 'ruído branco'.",
-            "Previsão: Intervalos de confiança a 95%.",
+            "Seguimos os 7 passos de Box-Jenkins.",
+            "O modelo escolhido tem os menores erros (AIC/BIC).",
+            "Os resíduos são 'ruído branco' (aleatórios), o que valida o modelo.",
           ],
         ),
         SlideData(
           title: "Slide 6: Regressão Harmónica (DHR)",
-          visuals: "Gráfico Ajuste Fourier + Resíduos.",
+          objective: "Modelar sazonalidade com ondas (Fourier) (Q5).",
+          visuals: "Ajuste Fourier vs Original.",
           points: [
-            "Abordagem: Séries de Fourier para sazonalidade complexa.",
-            "Resultado: Preserva bem a sazonalidade anual.",
-            "Resíduos: Centrados em zero, validando o modelo.",
+            "Usamos ondas senoidais para desenhar a sazonalidade.",
+            "Resultado muito suave e estável.",
           ],
         ),
         SlideData(
-          title: "Slide 7: Comparação Final (Série 2)",
-          visuals: "Gráfico único com: Original + Prev HW + Prev SARIMA + Prev DHR.",
+          title: "Slide 7: Comparação Final",
+          objective: "Decidir qual o melhor modelo (Q4e, Q5b).",
+          visuals: "Gráfico com as 3 previsões juntas.",
           points: [
-            "Visual: Sobreposição das previsões (intervalos de confiança).",
-            "Veredito: SARIMA teve erros menores (melhor qualidade).",
-            "DHR vs HW: Desempenho semelhante.",
+            "Comparando os 3 modelos: SARIMA vence.",
+            "Teve os menores erros e intervalos de confiança mais seguros.",
           ],
         ),
       ],
@@ -93,46 +94,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
       color: Colors.teal.shade800,
       slides: [
         SlideData(
-          title: "Slide 8: Análise de Retornos & ARCH",
-          visuals: "Gráfico Retornos Simples + Teste ARCH.",
+          title: "Slide 8: Volatilidade (ARCH)",
+          objective: "Provar que a volatilidade varia (Q1, Q2, Q3).",
+          visuals: "Gráfico dos Retornos + Teste ARCH.",
           points: [
-            "Dados: FTSE.Adjusted. Retornos oscilam em torno de zero.",
-            "Volatilidade: Clusters visíveis (períodos calmos vs agitados).",
-            "Teste ARCH: Rejeita H0 -> Existem efeitos ARCH (precisamos de GARCH).",
+            "Os retornos variam muito: há fases calmas e fases agitadas.",
+            "O teste ARCH confirma: precisamos de modelos GARCH.",
           ],
         ),
         SlideData(
-          title: "Slide 9: Modelos GARCH (sGARCH)",
-          visuals: "Tabela AIC/BIC dos modelos (1,1), (1,2)... + Gráfico Previsão.",
+          title: "Slide 9: Modelos GARCH",
+          objective: "Prever o risco (volatilidade) (Q4, Q5).",
+          visuals: "Previsão da Volatilidade (h=20).",
           points: [
-            "Melhor Modelo: Qual ordem? Qual distribuição (Normal/Student)?",
-            "Diagnóstico: QQ-Plot e Histograma dos resíduos.",
-            "Previsão: Volatilidade para h=20.",
+            "Testamos vários modelos (1,1), (1,2)...",
+            "O melhor modelo prevê como o risco vai evoluir nos próximos 20 dias.",
           ],
         ),
       ],
     ),
     PresentationSection(
-      title: "PARTE II: FTSE 100 (Close) - O Grande Final",
+      title: "PARTE II: FTSE 100 (Close)",
       color: Colors.orange.shade900,
       slides: [
         SlideData(
-          title: "Slide 10: Log-Retornos & Seleção",
-          visuals: "Gráfico Log-Retornos + Tabela Comparativa (AIC vs BIC).",
+          title: "Slide 10: Assimetria (EGARCH)",
+          objective: "Captar o 'medo' do mercado (Choques Negativos) (Q6).",
+          visuals: "Tabela Comparativa (AIC/BIC).",
           points: [
-            "Problema: Heterocedasticidade confirmada.",
-            "Modelos: EGARCH vs GJR-GARCH (Assimetria).",
-            "Conflito: AIC preferiu (2,1), BIC preferiu (1,1).",
-            "Decisão: EGARCH(1,1) t-Student Assimétrica (Parcimónia).",
+            "Mercados caem mais rápido do que sobem (Efeito Alavancagem).",
+            "Escolhemos o EGARCH(1,1) porque é simples e capta isso bem.",
           ],
         ),
         SlideData(
           title: "Slide 11: Diagnóstico Final",
-          visuals: "QQ-Plot + Curva de Impacto de Notícias (se houver).",
+          objective: "Garantir que o modelo é robusto (Q6).",
+          visuals: "QQ-Plot + Curva de Impacto.",
           points: [
-            "Validação: Resíduos alinhados à t-Student.",
-            "Alavancagem: Choques negativos aumentam mais a volatilidade.",
-            "Conclusão: Modelo bem especificado.",
+            "O modelo passou nos testes (resíduos normais).",
+            "Conclusão: É seguro usar este modelo para gestão de risco.",
           ],
         ),
       ],
@@ -143,26 +143,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Estrutura da Apresentação'),
+        title: const Text('Roteiro Simplificado'),
         backgroundColor: Colors.indigo[900],
         foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.copy),
-            tooltip: 'Copiar Estrutura Completa',
+            tooltip: 'Copiar Roteiro',
             onPressed: () {
               final buffer = StringBuffer();
               for (var section in sections) {
                 buffer.writeln("\n=== ${section.title} ===");
                 for (var slide in section.slides) {
                   buffer.writeln("\n${slide.title}");
-                  buffer.writeln("Visual: ${slide.visuals}");
-                  buffer.writeln("Falar: ${slide.points.join(' ')}");
+                  buffer.writeln("Objetivo: ${slide.objective}");
+                  buffer.writeln("Mostrar: ${slide.visuals}");
+                  buffer.writeln("Dizer: ${slide.points.join(' ')}");
                 }
               }
               Clipboard.setData(ClipboardData(text: buffer.toString()));
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Estrutura copiada!')),
+                const SnackBar(content: Text('Roteiro copiado!')),
               );
             },
           ),
@@ -220,8 +221,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
       ),
       subtitle: Text(
-        slide.visuals,
-        style: TextStyle(color: Colors.grey[600], fontSize: 13),
+        slide.objective,
+        style: TextStyle(color: Colors.grey[700], fontSize: 13, fontStyle: FontStyle.italic),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
@@ -232,15 +233,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Divider(),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.amber.shade200),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.lightbulb_outline, size: 20, color: Colors.amber),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        "Objetivo: ${slide.objective}",
+                        style: TextStyle(
+                          fontSize: 13, 
+                          fontWeight: FontWeight.w600,
+                          color: Colors.amber.shade900
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
               const Text(
-                "O QUE MOSTRAR (Gráficos/Tabelas):",
+                "MOSTRAR (Visual):",
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey),
               ),
               const SizedBox(height: 4),
               Text(slide.visuals, style: const TextStyle(fontSize: 14)),
               const SizedBox(height: 12),
               const Text(
-                "O QUE DIZER (Pontos Chave):",
+                "DIZER (Simples):",
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey),
               ),
               const SizedBox(height: 4),
@@ -249,7 +275,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.arrow_right, size: 18, color: color),
+                    Icon(Icons.check, size: 18, color: color),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(point, style: const TextStyle(fontSize: 14, height: 1.4)),
                     ),
@@ -274,8 +301,14 @@ class PresentationSection {
 
 class SlideData {
   final String title;
+  final String objective;
   final String visuals;
   final List<String> points;
 
-  SlideData({required this.title, required this.visuals, required this.points});
+  SlideData({
+    required this.title, 
+    required this.objective, 
+    required this.visuals, 
+    required this.points
+  });
 }
