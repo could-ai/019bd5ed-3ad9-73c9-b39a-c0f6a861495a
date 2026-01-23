@@ -26,9 +26,24 @@ RETURN
         "OK"
     )''';
 
+    // Presentation Script
+    final String presentationScript = '''
+• Aponte para a linha do histórico/ajuste:
+"Como podem ver pelo comportamento da linha, o modelo capturou perfeitamente a sazonalidade anual."
+
+• Aponte para a parte dos resíduos:
+"Validamos o modelo porque os resíduos estão centrados em zero e sem padrões, ou seja, removemos todo o ruído necessário."
+
+• Aponte para a projeção final:
+"As previsões são suaves. Notem como o intervalo de confiança aumenta no final, o que é natural."
+
+• Conclusão:
+"Em resumo: empata com o Holt-Winters, mas o SARIMA continua a ser superior com erros mais baixos."
+''';
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Investigação: Os 8 Perdidos'),
+        title: const Text('Investigação & Apresentação'),
         backgroundColor: Colors.indigo[900],
         foregroundColor: Colors.white,
       ),
@@ -37,7 +52,66 @@ RETURN
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Alert Section
+            // Presentation Helper Section
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.blue.shade200),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.mic, color: Colors.blue),
+                          SizedBox(width: 8),
+                          Text(
+                            'Roteiro de Apresentação',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.copy, color: Colors.blue),
+                        tooltip: 'Copiar Texto',
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: presentationScript));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Roteiro copiado para a área de transferência!')),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  SelectableText(
+                    presentationScript,
+                    style: const TextStyle(fontSize: 15, height: 1.5),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+            const Divider(thickness: 2),
+            const SizedBox(height: 24),
+
+            // Alert Section (Previous Context)
+            const Text(
+              "Investigação Power BI (Contexto Anterior)",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey),
+            ),
+            const SizedBox(height: 10),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
