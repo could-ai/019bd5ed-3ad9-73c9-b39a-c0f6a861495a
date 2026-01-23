@@ -14,6 +14,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // Data structure for the presentation
   final List<PresentationSection> sections = [
     PresentationSection(
+      title: "AGENDA E OBJETIVOS (Slide Único)",
+      color: Colors.black87,
+      slides: [
+        SlideData(
+          title: "Roteiro da Apresentação",
+          objective: "Apresentar a estrutura e o propósito do trabalho.",
+          visuals: "Lista de Tópicos (Agenda) + Objetivos em destaque.",
+          points: [
+            "OBJETIVOS DO PROJETO:",
+            "1. Identificar padrões (tendência/sazonalidade) em séries temporais.",
+            "2. Comparar métodos de previsão (Holt-Winters vs SARIMA vs DHR).",
+            "3. Modelar a volatilidade e o risco financeiro (Modelos GARCH).",
+            "",
+            "ESTRUTURA DA APRESENTAÇÃO:",
+            "• Parte I - Série 1 ('hor'): Caracterização e Decomposição.",
+            "• Parte I - Série 2 ('co'): Modelação Avançada e Previsão.",
+            "• Parte II - FTSE 100: Análise de Retornos e Volatilidade Assimétrica.",
+          ],
+        ),
+      ],
+    ),
+    PresentationSection(
       title: "PARTE I: Série 1 ('hor')",
       color: Colors.blue.shade800,
       slides: [
@@ -143,27 +165,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Roteiro Simplificado'),
-        backgroundColor: Colors.indigo[900],
+        title: const Text('Agenda e Objetivos'),
+        backgroundColor: Colors.black87,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.copy),
-            tooltip: 'Copiar Roteiro',
+            tooltip: 'Copiar Agenda',
             onPressed: () {
               final buffer = StringBuffer();
-              for (var section in sections) {
-                buffer.writeln("\n=== ${section.title} ===");
-                for (var slide in section.slides) {
-                  buffer.writeln("\n${slide.title}");
-                  buffer.writeln("Objetivo: ${slide.objective}");
-                  buffer.writeln("Mostrar: ${slide.visuals}");
-                  buffer.writeln("Dizer: ${slide.points.join(' ')}");
-                }
+              // Only copy the Agenda section (first section)
+              final agendaSection = sections.first;
+              buffer.writeln("=== ${agendaSection.title} ===");
+              for (var slide in agendaSection.slides) {
+                buffer.writeln("\n${slide.points.join('\n')}");
               }
+              
               Clipboard.setData(ClipboardData(text: buffer.toString()));
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Roteiro copiado!')),
+                const SnackBar(content: Text('Agenda copiada para a área de transferência!')),
               );
             },
           ),
@@ -212,6 +232,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildSlideItem(SlideData slide, Color color) {
     return ExpansionTile(
+      initiallyExpanded: true, // Keep expanded for visibility
       leading: CircleAvatar(
         backgroundColor: color.withOpacity(0.1),
         child: Icon(Icons.slideshow, color: color),
@@ -233,55 +254,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Divider(),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.amber.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.amber.shade200),
+              if (slide.visuals.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                const Text(
+                  "VISUAL (O que mostrar):",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey),
                 ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.lightbulb_outline, size: 20, color: Colors.amber),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        "Objetivo: ${slide.objective}",
-                        style: TextStyle(
-                          fontSize: 13, 
-                          fontWeight: FontWeight.w600,
-                          color: Colors.amber.shade900
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
+                Text(slide.visuals, style: const TextStyle(fontSize: 14)),
+                const SizedBox(height: 12),
+              ],
               const Text(
-                "MOSTRAR (Visual):",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey),
-              ),
-              const SizedBox(height: 4),
-              Text(slide.visuals, style: const TextStyle(fontSize: 14)),
-              const SizedBox(height: 12),
-              const Text(
-                "DIZER (Simples):",
+                "CONTEÚDO (O que dizer):",
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey),
               ),
               const SizedBox(height: 4),
               ...slide.points.map((point) => Padding(
                 padding: const EdgeInsets.only(bottom: 6.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(Icons.check, size: 18, color: color),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(point, style: const TextStyle(fontSize: 14, height: 1.4)),
-                    ),
-                  ],
-                ),
+                child: Text(point, style: const TextStyle(fontSize: 14, height: 1.4, fontWeight: FontWeight.w500)),
               )),
             ],
           ),
