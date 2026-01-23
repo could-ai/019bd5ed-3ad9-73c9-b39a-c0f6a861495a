@@ -174,6 +174,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ),
   ];
 
+  void _copyContent(BuildContext context) {
+    final buffer = StringBuffer();
+    // Copy Agenda Section
+    final agendaSection = sections.first;
+    buffer.writeln("=== ${agendaSection.title} ===");
+    for (var slide in agendaSection.slides) {
+      buffer.writeln("\n[${slide.title}]");
+      if (slide.objective.isNotEmpty) {
+        buffer.writeln("OBJETIVO: ${slide.objective}");
+      }
+      buffer.writeln(slide.points.join('\n'));
+    }
+    
+    final textToCopy = buffer.toString();
+
+    // Try system clipboard
+    Clipboard.setData(ClipboardData(text: textToCopy));
+
+    // Show dialog with selectable text as fallback/confirmation
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Texto da Agenda"),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: SelectableText(textToCopy),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Fechar"),
+          ),
+          TextButton(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: textToCopy));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Copiado para a área de transferência!')),
+              );
+            },
+            child: const Text("Copiar Novamente"),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -184,22 +232,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.copy),
-            tooltip: 'Copiar Agenda',
-            onPressed: () {
-              final buffer = StringBuffer();
-              // Copy Agenda Section
-              final agendaSection = sections.first;
-              buffer.writeln("=== ${agendaSection.title} ===");
-              for (var slide in agendaSection.slides) {
-                buffer.writeln("\n[${slide.title}]");
-                buffer.writeln(slide.points.join('\n'));
-              }
-              
-              Clipboard.setData(ClipboardData(text: buffer.toString()));
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Agenda e Objetivos copiados!')),
-              );
-            },
+            tooltip: 'Ver e Copiar Agenda',
+            onPressed: () => _copyContent(context),
           ),
         ],
       ),
