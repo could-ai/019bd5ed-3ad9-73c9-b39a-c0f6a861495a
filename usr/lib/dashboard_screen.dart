@@ -12,39 +12,46 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
-    // Presentation Script for FTSE 100 GARCH Analysis - Simplified for Professor
+    // Presentation Script - Detailed & Robust for Professor
     final String presentationScript = '''
-• Slide 1: Análise da Série (O Porquê)
-"Professor, comecei por calcular os log-retornos do FTSE 100.
-Como vemos no gráfico, a média é zero, mas a volatilidade varia muito (clusters).
-Isso justifica o uso de modelos GARCH para captar essa dinâmica."
+• Slide 1: Análise Exploratória (O Problema)
+"Professor, neste primeiro gráfico observamos os log-retornos do FTSE 100.
+A média oscila em torno de zero, indicando ausência de tendência, mas o ponto crítico é a variância.
+Vemos claramente 'clusters de volatilidade': períodos de alta instabilidade seguidos de calmaria.
+Isso confirma que a série é heterocedástica. Por isso, modelos lineares simples não servem; precisamos da família GARCH para modelar essa variância condicional dinâmica."
 
-• Slide 2: Seleção do Modelo (O Que Fiz)
-"Estimei modelos EGARCH e GJR-GARCH com várias ordens e distribuições t-Student.
-A escolha recaiu sobre o EGARCH(1,1) com t-Student assimétrica.
-Porquê? O AIC do modelo (2,1) era ligeiramente melhor, mas o BIC (que penaliza a complexidade) indicou o (1,1) como a escolha mais eficiente e parcimoniosa."
+• Slide 2: Seleção do Modelo (A Metodologia)
+"Para capturar essa dinâmica e possíveis assimetrias (efeito alavancagem), estimei modelos EGARCH e GJR-GARCH.
+Testei combinações de ordens (1,1), (1,2) e (2,1) usando distribuições t-Student (simétrica e assimétrica) para lidar com as caudas pesadas típicas de finanças.
+A Decisão: O modelo EGARCH(2,1) teve o melhor AIC, mas a diferença para o (1,1) foi marginal.
+Como o critério BIC penaliza a complexidade (número de parâmetros) mais severamente, ele apontou o EGARCH(1,1) com t-Student assimétrica como o ideal.
+Seguindo o princípio da parcimónia, escolhi este modelo: explica a série tão bem quanto os outros, mas é mais simples."
 
-• Slide 3: Diagnóstico (O Resultado)
-"O modelo confirmou persistência na volatilidade e efeito de alavancagem (más notícias pesam mais).
-O QQ-Plot mostra os resíduos alinhados à reta, validando a distribuição escolhida.
-Conclusão: O modelo está bem especificado."
+• Slide 3: Diagnóstico e Validação (A Conclusão)
+"Os resultados do modelo estimado confirmam duas coisas:
+1. Alta persistência na volatilidade (choques demoram a dissipar).
+2. Efeito de alavancagem significativo (más notícias aumentam a volatilidade mais que as boas).
+No diagnóstico visual (QQ-Plot), os resíduos padronizados alinham-se quase perfeitamente à reta da distribuição t-Student assimétrica.
+Isso valida a escolha da distribuição e confirma que o modelo está bem especificado, capturando adequadamente a estrutura dos dados."
 ''';
 
-    // Model Details for the "Code" section
-    final String selectedModelDetails = '''Modelo Final: EGARCH(1,1)
+    // Technical Details for reference
+    final String selectedModelDetails = '''Modelo Escolhido: EGARCH(1,1)
 Distribuição: t-Student Assimétrica (sstd)
 
-Critérios de Decisão:
-1. AIC: -6.58747 (Muito próximo do 2,1)
-2. BIC: -6.582467 (Decisivo pela parcimónia)
+Justificativa Técnica:
+- Heterocedasticidade: Confirmada pelos clusters.
+- Caudas Pesadas: Exigem distribuição t-Student.
+- Assimetria: Exige EGARCH/GJR + sstd.
 
-Conclusões Económicas:
-- Persistência: Alta
-- Alavancagem: Confirmada (choques negativos > positivos)''';
+Critérios:
+- AIC: EGARCH(2,1) ligeiramente menor (melhor ajuste).
+- BIC: EGARCH(1,1) menor (melhor trade-off).
+- Decisão: Parcimónia (Menos parâmetros).''';
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Defesa: FTSE 100 GARCH'),
+        title: const Text('Defesa Detalhada: FTSE 100'),
         backgroundColor: Colors.indigo[900],
         foregroundColor: Colors.white,
       ),
@@ -53,7 +60,7 @@ Conclusões Económicas:
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Presentation Helper Section
+            // Script Section
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -67,27 +74,31 @@ Conclusões Económicas:
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Row(
-                        children: [
-                          Icon(Icons.mic, color: Colors.blue),
-                          SizedBox(width: 8),
-                          Text(
-                            'Roteiro para o Professor',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: Colors.blue,
+                      const Expanded(
+                        child: Row(
+                          children: [
+                            Icon(Icons.record_voice_over, color: Colors.blue),
+                            SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                'Discurso Completo (Anti-Branca)',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: Colors.blue,
+                                ),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.copy, color: Colors.blue),
-                        tooltip: 'Copiar Texto',
+                        tooltip: 'Copiar Discurso',
                         onPressed: () {
                           Clipboard.setData(ClipboardData(text: presentationScript));
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Roteiro copiado!')),
+                            const SnackBar(content: Text('Discurso copiado!')),
                           );
                         },
                       ),
@@ -97,7 +108,7 @@ Conclusões Económicas:
                   const SizedBox(height: 8),
                   SelectableText(
                     presentationScript,
-                    style: const TextStyle(fontSize: 15, height: 1.5),
+                    style: const TextStyle(fontSize: 15, height: 1.6, color: Colors.black87),
                   ),
                 ],
               ),
@@ -107,66 +118,70 @@ Conclusões Económicas:
             const Divider(thickness: 2),
             const SizedBox(height: 24),
 
-            // Slide 1 Section
+            // Slide 1 Detail
             const Text(
-              "Slide 1: Análise dos Log-Retornos",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey),
+              "Slide 1: Análise da Série",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             _buildSlideCard(
               icon: Icons.show_chart,
-              title: 'Contexto',
+              title: 'O Problema (Heterocedasticidade)',
               points: [
-                'Log-retornos oscilam em torno de zero (sem tendência).',
-                'Volatilidade aglomerada (clusters de instabilidade).',
-                'Justificativa: Séries financeiras exigem GARCH.',
+                'Média zero (sem tendência), mas variância instável.',
+                'Clusters de Volatilidade: Períodos calmos vs agitados.',
+                'Justificativa: Séries financeiras violam a premissa de variância constante, exigindo GARCH.',
               ],
+              color: Colors.orange,
             ),
             
             const SizedBox(height: 20),
 
-            // Slide 2 Section
+            // Slide 2 Detail
             const Text(
               "Slide 2: Seleção do Modelo",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             _buildSlideCard(
-              icon: Icons.filter_alt,
-              title: 'Metodologia & Decisão',
+              icon: Icons.architecture,
+              title: 'A Metodologia (AIC vs BIC)',
               points: [
-                'Testados: EGARCH e GJR-GARCH (1,1), (1,2), (2,1).',
-                'Distribuições: t-Student (simétrica e assimétrica).',
-                'Critério: BIC preferiu EGARCH(1,1) (mais simples) vs (2,1).',
+                'Testados: EGARCH e GJR-GARCH (captam assimetria).',
+                'Ordens: (1,1), (1,2), (2,1) com t-Student (caudas pesadas).',
+                'Conflito: AIC preferiu (2,1) (ajuste puro), BIC preferiu (1,1) (simplicidade).',
+                'Decisão: EGARCH(1,1) sstd pela parcimónia.',
               ],
-              highlight: 'Escolhido: EGARCH(1,1) com t-Student assimétrica',
+              highlight: 'Porquê (1,1)? O ganho do (2,1) não compensava a complexidade extra.',
+              color: Colors.blue,
             ),
 
             const SizedBox(height: 20),
 
-            // Slide 3 Section
+            // Slide 3 Detail
             const Text(
-              "Slide 3: Diagnóstico Final",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey),
+              "Slide 3: Diagnóstico",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
              _buildSlideCard(
-              icon: Icons.check_circle,
-              title: 'Validação',
+              icon: Icons.check_circle_outline,
+              title: 'A Validação (QQ-Plot)',
               points: [
-                'Volatilidade persistente e efeito de alavancagem confirmado.',
-                'QQ-Plot: Resíduos alinhados com a reta teórica.',
-                'Conclusão: Modelo bem especificado e robusto.',
+                'Resultados: Alta persistência e efeito alavancagem confirmado.',
+                'QQ-Plot: Resíduos alinhados à reta da t-Student assimétrica.',
+                'Conclusão: Modelo bem especificado, sem padrões nos resíduos.',
               ],
+              color: Colors.green,
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             
-            // Technical Details Section
+            // Technical Cheat Sheet
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF2D2D2D),
+                color: const Color(0xFF222222),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -176,7 +191,7 @@ Conclusões Económicas:
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'Resumo Técnico:',
+                        'Cábula Técnica (Para Perguntas):',
                         style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                       ),
                       IconButton(
@@ -184,7 +199,7 @@ Conclusões Económicas:
                         onPressed: () {
                           Clipboard.setData(ClipboardData(text: selectedModelDetails));
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Detalhes copiados!')),
+                            const SnackBar(content: Text('Cábula copiada!')),
                           );
                         },
                       ),
@@ -197,6 +212,7 @@ Conclusões Económicas:
                       color: Colors.greenAccent,
                       fontFamily: 'Courier',
                       fontSize: 13,
+                      height: 1.4,
                     ),
                   ),
                 ],
@@ -212,10 +228,12 @@ Conclusões Económicas:
     required IconData icon, 
     required String title, 
     required List<String> points, 
-    String? highlight
+    String? highlight,
+    required Color color,
   }) {
     return Card(
-      elevation: 2,
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -223,42 +241,65 @@ Conclusões Económicas:
           children: [
             Row(
               children: [
-                CircleAvatar(
-                  backgroundColor: Colors.indigo.shade100,
-                  child: Icon(icon, color: Colors.indigo),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: color, size: 28),
                 ),
                 const SizedBox(width: 12),
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Expanded(
+                  child: Text(
+                    title, 
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold, 
+                      fontSize: 16,
+                      color: color.withOpacity(0.8), // Darker shade
+                    ),
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             ...points.map((point) => Padding(
-              padding: const EdgeInsets.only(bottom: 6.0),
+              padding: const EdgeInsets.only(bottom: 8.0),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.arrow_right, size: 20, color: Colors.black54),
-                  Expanded(child: Text(point, style: const TextStyle(fontSize: 14))),
+                  Icon(Icons.arrow_right, size: 22, color: Colors.grey[700]),
+                  Expanded(
+                    child: Text(
+                      point, 
+                      style: const TextStyle(fontSize: 15, height: 1.4),
+                    ),
+                  ),
                 ],
               ),
             )),
             if (highlight != null) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.green.shade50,
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: Colors.green.shade200),
+                  color: color.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: color.withOpacity(0.3)),
                 ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.star, size: 16, color: Colors.green),
-                    const SizedBox(width: 8),
+                    Icon(Icons.lightbulb, size: 20, color: color),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         highlight,
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 13),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold, 
+                          color: color, 
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   ],
