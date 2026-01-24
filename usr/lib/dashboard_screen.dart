@@ -176,38 +176,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ),
   ];
 
-  void _copyContent(BuildContext context) {
+  void _copyContent(BuildContext context, {SlideData? singleSlide}) {
     final buffer = StringBuffer();
     
-    // Title
-    buffer.writeln("=== ROTEIRO DE APRESENTAÇÃO ===\n");
-
-    for (var section in sections) {
-      buffer.writeln("\n>>> ${section.title} <<<\n");
-      for (var slide in section.slides) {
-        buffer.writeln("[${slide.title}]");
-        if (slide.objective.isNotEmpty) {
-          buffer.writeln("OBJETIVO: ${slide.objective}");
-        }
-        if (slide.visuals.isNotEmpty) {
-          buffer.writeln("VISUAL: ${slide.visuals}");
-        }
-        buffer.writeln("TÓPICOS:");
-        for (var point in slide.points) {
-          buffer.writeln(" • $point");
-        }
-        buffer.writeln(""); // Empty line between slides
+    if (singleSlide != null) {
+      // Copy single slide
+      buffer.writeln(">>> ${singleSlide.title} <<<");
+      if (singleSlide.objective.isNotEmpty) {
+        buffer.writeln("OBJETIVO: ${singleSlide.objective}");
       }
-      buffer.writeln("----------------------------------------");
+      if (singleSlide.visuals.isNotEmpty) {
+        buffer.writeln("VISUAL: ${singleSlide.visuals}");
+      }
+      buffer.writeln("TÓPICOS:");
+      for (var point in singleSlide.points) {
+        buffer.writeln(" • $point");
+      }
+    } else {
+      // Copy all
+      buffer.writeln("=== ROTEIRO DE APRESENTAÇÃO ===\n");
+      for (var section in sections) {
+        buffer.writeln("\n>>> ${section.title} <<<\n");
+        for (var slide in section.slides) {
+          buffer.writeln("[${slide.title}]");
+          if (slide.objective.isNotEmpty) {
+            buffer.writeln("OBJETIVO: ${slide.objective}");
+          }
+          if (slide.visuals.isNotEmpty) {
+            buffer.writeln("VISUAL: ${slide.visuals}");
+          }
+          buffer.writeln("TÓPICOS:");
+          for (var point in slide.points) {
+            buffer.writeln(" • $point");
+          }
+          buffer.writeln("");
+        }
+        buffer.writeln("----------------------------------------");
+      }
     }
     
     final textToCopy = buffer.toString();
 
-    // Show dialog with selectable text
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Copiar Roteiro Completo"),
+        title: Text(singleSlide != null ? "Copiar Slide" : "Copiar Roteiro Completo"),
         content: SizedBox(
           width: double.maxFinite,
           child: Column(
@@ -215,7 +228,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                "Selecione o texto abaixo e use Ctrl+C para copiar:",
+                "Selecione o texto abaixo e use Ctrl+C:",
                 style: TextStyle(fontSize: 12, color: Colors.grey),
               ),
               const SizedBox(height: 8),
@@ -245,7 +258,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           ElevatedButton.icon(
             icon: const Icon(Icons.copy),
-            label: const Text("Copiar Tudo"),
+            label: const Text("Copiar"),
             onPressed: () {
               Clipboard.setData(ClipboardData(text: textToCopy));
               ScaffoldMessenger.of(context).showSnackBar(
@@ -268,7 +281,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.copy_all),
-            tooltip: 'Copiar Roteiro',
+            tooltip: 'Copiar Roteiro Completo',
             onPressed: () => _copyContent(context),
           ),
         ],
@@ -366,12 +379,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 const SizedBox(height: 12),
               ],
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Icon(Icons.mic, size: 16, color: Colors.grey[600]),
-                  const SizedBox(width: 6),
-                  const Text(
-                    "TÓPICOS (O que dizer):",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey),
+                  Row(
+                    children: [
+                      Icon(Icons.mic, size: 16, color: Colors.grey[600]),
+                      const SizedBox(width: 6),
+                      const Text(
+                        "TÓPICOS (O que dizer):",
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                  TextButton.icon(
+                    onPressed: () => _copyContent(context, singleSlide: slide),
+                    icon: const Icon(Icons.copy, size: 14),
+                    label: const Text("Copiar Slide", style: TextStyle(fontSize: 12)),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
                   ),
                 ],
               ),
