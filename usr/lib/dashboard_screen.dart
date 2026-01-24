@@ -109,10 +109,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           visuals: "Bullets: Procedimento, Log, Diferenças (d=1, D=1), Seleção AIC/BIC. Imagem: Tabela AIC/BIC + Teste Ljung-Box.",
           points: [
             "Aplicámos o procedimento Box–Jenkins.",
-            "Primeiro estabilizámos a variância com Log e tornámos a série estacionária com uma diferença regular (d=1, remove tendência) e uma sazonal (D=1, s=52).",
+            "Primeiro estabilizámos a variância com Log e tornámos a série estacionária com uma diferença regular (d=1, remove tendência) e uma sazonal (D=1, período 52).",
             "Com a série estacionária, analisámos ACF/PACF e testámos candidatos. Comparámos via AIC e BIC.",
-            "O modelo escolhido foi o SARIMA(1,1,1)(0,1,1)[52], pois apresentou os menores valores de AIC e BIC (Modelo m2).",
-            "Validámos com Ljung-Box: O teste não indica autocorrelação nos resíduos (p-value > 0.05).",
+            "O modelo escolhido foi o SARIMA(1,1,1)(0,1,1)[52], porque apresentou os menores valores de AIC e BIC.",
+            "Validámos com Ljung-Box: O teste não indica autocorrelação nos resíduos (p-value > 0.05), o que significa que o modelo explicou bem a estrutura.",
             "Conclusão simples: Retirada a tendência e sazonalidade, sobram apenas variações aleatórias (ruído branco), confirmando o bom ajuste.",
           ],
         ),
